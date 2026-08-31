@@ -1,0 +1,1 @@
+import { ContentPage } from "@/components/pages/ContentPage"; export default function Page(){return <ContentPage eyebrow="להדפסה ולעבודה" title="דפי עבודה" description="מאגר דפי תרגול מדורגים. בשלב זה הוקמה התשתית להצגת חומרים שיתווספו בהמשך." items={["קווים קדם־כתיבתיים","תרגול נקודות","עקיבה אחר אות","העתקה מדורגת"]}/>}
