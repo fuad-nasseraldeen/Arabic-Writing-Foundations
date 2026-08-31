@@ -1,0 +1,3 @@
+import { notFound } from "next/navigation";
+import { isLocale } from "@/i18n/config";
+export default async function Letter({params}:{params:Promise<{locale:string;slug:string}>}) { const {locale,slug}=await params; if(!isLocale(locale)) notFound(); const title=slug==="baa"?"ب":slug; return <div className="letter-page container"><span className="eyebrow">{locale==="he"?"מפת אותיות":"خريطة الحروف"}</span><div className="letter-hero"><span className="arabic">{title}</span><div><h1>{locale==="he"?"ניתוח אות":"تحليل الحرف"} {title}</h1><p>{locale==="he"?"דף התוכן המקצועי מוכן לעדכון והרחבה במערכת הניהול.":"صفحة المحتوى المهني جاهزة للتحديث والتوسيع في نظام الإدارة."}</p></div></div></div>; }

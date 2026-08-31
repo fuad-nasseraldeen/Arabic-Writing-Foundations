@@ -1,0 +1,7 @@
+import { notFound } from "next/navigation";
+import { isLocale } from "@/i18n/config";
+import { t } from "@/i18n/dictionaries";
+import { createClient } from "@/lib/supabase/server";
+import { MediaUploader } from "@/components/admin/MediaUploader";
+import { deleteMedia } from "../actions";
+export default async function Page({params}:{params:Promise<{locale:string}>}) {const {locale}=await params;if(!isLocale(locale))notFound();const supabase=await createClient();const result=await supabase.from("media").select("*").order("created_at",{ascending:false});const media=result.data??[];const d=t(locale);return <><h1>{d.admin.media}</h1><MediaUploader locale={locale}/><div className="media-grid">{media.map(file=>{const {data:url}=supabase.storage.from("site-media").getPublicUrl(file.storage_path);const image=file.mime_type.startsWith("image/");return <article key={file.id} className="media-card">{image?<img src={url.publicUrl} alt=""/>:<div className="pdf-preview">PDF</div>}<b>{file.file_name}</b><small>{Math.ceil(file.size_bytes/1024)} KB · {new Date(file.created_at).toLocaleDateString(locale)}</small><a href={url.publicUrl} target="_blank">{locale==="he"?"פתח / העתק כתובת":"فتح / نسخ الرابط"}</a><form action={deleteMedia.bind(null,locale)}><input type="hidden" name="id" value={file.id}/><input type="hidden" name="path" value={file.storage_path}/><button className="danger-button">{d.common.delete}</button></form></article>})}</div></>;}
