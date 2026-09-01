@@ -10,5 +10,14 @@ export function CardButton({ item, locale }: { item: SiteItem; locale: Locale })
   // Existing cards created before show_button used their CTA fields directly.
   if (!(item.show_button || label) || !label || !href) return null;
   if (/^https?:\/\//i.test(href)) return <a className="card-link" href={href} target="_blank" rel="noopener noreferrer">{label}<ArrowLeft size={17} /></a>;
-  return <Link className="card-link" href={href.startsWith("/") ? href : `/${locale}/${href}`}><span>{label}</span><ArrowLeft size={17} /></Link>;
+  const internalHref = href === "/"
+    ? `/${locale}`
+    : href.startsWith(`/${locale}/`) || href === `/${locale}`
+      ? href
+      : href.match(/^\/(he|ar)(\/|$)/)
+        ? href.replace(/^\/(he|ar)/, `/${locale}`)
+        : href.startsWith("/")
+          ? `/${locale}${href}`
+          : `/${locale}/${href}`;
+  return <Link className="card-link" href={internalHref}><span>{label}</span><ArrowLeft size={17} /></Link>;
 }

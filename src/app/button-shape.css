@@ -1,0 +1,13 @@
+/* Shared actions use a soft corner instead of the former pill treatment. */
+.button,
+.outline-button,
+.login-link,
+.chips button,
+.tagChips button,
+.editor-tabs button,
+.admin-toolbar button,
+.inline-controls,
+.inline-card-controls,
+.admin-badge {
+  border-radius: 10px;
+}

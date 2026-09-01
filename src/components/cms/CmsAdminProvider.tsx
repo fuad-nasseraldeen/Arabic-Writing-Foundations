@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import Link from "next/link";
+import { Settings } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 
 type CmsAdminState = { isAdmin: boolean; editing: boolean };
@@ -65,9 +66,7 @@ export function CmsAdminProvider({
         <div className="admin-toolbar">
           <b>{locale === "he" ? "מצב עריכה" : "وضع التحرير"}</b>
           <button onClick={toggle}>{editing ? "ON" : "OFF"}</button>
-          <Link href={`/${locale}/admin/media`}>{locale === "he" ? "קבצים" : "الملفات"}</Link>
-          <Link href={`/${locale}/admin/users`}>{locale === "he" ? "משתמשים" : "المستخدمون"}</Link>
-          <Link href={`/${locale}/admin/admins`}>{locale === "he" ? "מנהלים" : "المديرون"}</Link>
+          <Link href={`/${locale}/admin`} className="admin-settings-link"><Settings size={16} />{locale === "he" ? "הגדרות" : "الإعدادات"}</Link>
         </div>
       )}
       {children}

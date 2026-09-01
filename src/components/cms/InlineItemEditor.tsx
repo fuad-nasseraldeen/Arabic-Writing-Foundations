@@ -40,9 +40,10 @@ function ButtonLinkFields({ locale, initialValue }: { locale: Locale; initialVal
   </>;
 }
 
-function ItemForm({ locale, item, sectionId, close, onSaved }: { locale: Locale; item?: SiteItem; sectionId: string; close: () => void; onSaved: () => void }) {
+function ItemForm({ locale, item, sectionId, close, onSaved, portraitOnly = false }: { locale: Locale; item?: SiteItem; sectionId: string; close: () => void; onSaved: () => void; portraitOnly?: boolean }) {
   const [tab, setTab] = useState<Locale>(locale);
   const [hasButton, setHasButton] = useState(Boolean(item?.cta_label_he || item?.cta_label_ar || item?.cta_href));
+  const [showPortrait, setShowPortrait] = useState(Boolean(item?.image_url));
   const [text, setText] = useState({ title_he: item?.title_he || "", title_ar: item?.title_ar || "", description_he: item?.description_he || "", description_ar: item?.description_ar || "", cta_label_he: item?.cta_label_he || "", cta_label_ar: item?.cta_label_ar || "", media_title_he: item?.media_title_he || "", media_title_ar: item?.media_title_ar || "" });
   const link = item?.cta_href || `/${locale}`;
   const submit = async (formData: FormData) => { await saveSiteItem(locale, formData); onSaved(); close(); };
@@ -57,9 +58,7 @@ function ItemForm({ locale, item, sectionId, close, onSaved }: { locale: Locale;
     <input type="hidden" name="has_button" value={hasButton ? "true" : "false"} />
     <label className="check"><input type="checkbox" checked={hasButton} onChange={(event) => setHasButton(event.target.checked)} />{tab === "he" ? "הצג כפתור בכרטיס" : "إظهار زر في البطاقة"}</label>
     {hasButton && <><label>{tab === "he" ? "טקסט הכפתור" : "نص الزر"}<input value={text[`cta_label_${tab}`]} onChange={(event) => setText((current) => ({ ...current, [`cta_label_${tab}`]: event.target.value }))} /></label><ButtonLinkFields locale={locale} initialValue={link} /></>}
-    <InlineMediaUpload locale={locale} initial={{ imageUrl: item?.image_url, fileUrl: item?.file_url, fileName: item?.original_file_name, mimeType: item?.media_mime_type }} />
-    <label>{tab === "he" ? "כותרת למדיה (אופציונלי)" : "عنوان الوسائط (اختياري)"}<input value={text[`media_title_${tab}`]} onChange={(event) => setText((current) => ({ ...current, [`media_title_${tab}`]: event.target.value }))} /></label>
-    <div className="media-options"><label>{tab === "he" ? "מיקום הקובץ" : "موضع الملف"}<select name="media_position" defaultValue={item?.media_position || "top"}><option value="top">{tab === "he" ? "למעלה" : "في الأعلى"}</option><option value="bottom">{tab === "he" ? "למטה" : "في الأسفل"}</option></select></label><label>{tab === "he" ? "גודל" : "الحجم"}<select name="media_size" defaultValue={item?.media_size || "medium"}><option value="small">{tab === "he" ? "קטן" : "صغير"}</option><option value="medium">{tab === "he" ? "בינוני" : "متوسط"}</option><option value="large">{tab === "he" ? "גדול" : "كبير"}</option></select></label><label>{tab === "he" ? "התאמת תמונה" : "ملاءمة الصورة"}<select name="media_fit" defaultValue={item?.media_fit || "cover"}><option value="cover">{tab === "he" ? "מילוי" : "ملء"}</option><option value="contain">{tab === "he" ? "התאמה מלאה" : "احتواء كامل"}</option></select></label></div>
+    {portraitOnly ? <><input type="hidden" name="media_position" value="top" /><input type="hidden" name="media_size" value="medium" /><input type="hidden" name="media_fit" value="cover" /><label className="check portrait-toggle"><input type="checkbox" checked={showPortrait} onChange={(event) => setShowPortrait(event.target.checked)} />{tab === "he" ? "הצג תמונה אישית" : "إظهار صورة شخصية"}</label>{showPortrait ? <div className="portrait-upload"><p>{tab === "he" ? "התמונה תופיע כאן כפורטרט עגול." : "ستظهر الصورة هنا كصورة شخصية دائرية."}</p><InlineMediaUpload locale={locale} initial={{ imageUrl: item?.image_url, fileUrl: null, fileName: item?.original_file_name, mimeType: item?.media_mime_type }} /></div> : <p className="portrait-no-image">{tab === "he" ? "לא תוצג תמונה בכרטיס אודותיי." : "لن تظهر صورة في بطاقة من أنا."}</p>}</> : <><InlineMediaUpload locale={locale} initial={{ imageUrl: item?.image_url, fileUrl: item?.file_url, fileName: item?.original_file_name, mimeType: item?.media_mime_type }} /><label>{tab === "he" ? "כותרת למדיה (אופציונלי)" : "عنوان الوسائط (اختياري)"}<input value={text[`media_title_${tab}`]} onChange={(event) => setText((current) => ({ ...current, [`media_title_${tab}`]: event.target.value }))} /></label><div className="media-options"><label>{tab === "he" ? "מיקום הקובץ" : "موضع الملف"}<select name="media_position" defaultValue={item?.media_position || "top"}><option value="top">{tab === "he" ? "למעלה" : "في الأعلى"}</option><option value="bottom">{tab === "he" ? "למטה" : "في الأسفل"}</option></select></label><label>{tab === "he" ? "גודל" : "الحجم"}<select name="media_size" defaultValue={item?.media_size || "medium"}><option value="small">{tab === "he" ? "קטן" : "صغير"}</option><option value="medium">{tab === "he" ? "בינוני" : "متوسط"}</option><option value="large">{tab === "he" ? "גדול" : "كبير"}</option></select></label><label>{tab === "he" ? "התאמת תמונה" : "ملاءمة الصورة"}<select name="media_fit" defaultValue={item?.media_fit || "cover"}><option value="cover">{tab === "he" ? "מילוי" : "ملء"}</option><option value="contain">{tab === "he" ? "התאמה מלאה" : "احتواء كامل"}</option></select></label></div></>}
     <label className="check"><input name="is_visible" type="checkbox" defaultChecked={item?.is_visible ?? true} />{tab === "he" ? "הכרטיס מוצג באתר" : "البطاقة ظاهرة في الموقع"}</label>
     <div className="drawer-actions"><button type="button" className="outline-button" onClick={close}>{tab === "he" ? "ביטול" : "إلغاء"}</button><SaveButton locale={tab} /></div>
   </form>;
@@ -69,14 +68,14 @@ function Toast({ visible, locale }: { visible: boolean; locale: Locale }) {
   return visible ? <div className="cms-toast" role="status">{locale === "he" ? "נשמר בהצלחה" : "تم الحفظ بنجاح"}</div> : null;
 }
 
-export function InlineItemEditor({ locale, item }: { locale: Locale; item: SiteItem }) {
+export function InlineItemEditor({ locale, item, portraitOnly = false }: { locale: Locale; item: SiteItem; portraitOnly?: boolean }) {
   const editing = useCmsEditMode();
   const [open, setOpen] = useState(false), [confirm, setConfirm] = useState(false), [saved, setSaved] = useState(false);
   const showSaved = () => { setSaved(true); window.setTimeout(() => setSaved(false), 2800); };
   if (!editing) return null;
   return <><div className="inline-card-controls" style={{ display: "flex" }}><button type="button" onClick={() => setOpen(true)} aria-label="עריכת כרטיס"><Pencil size={16} /></button><button type="button" onClick={() => setConfirm(true)} aria-label="מחיקת כרטיס"><Trash2 size={16} /></button></div><Toast visible={saved} locale={locale} />
     {confirm && <div className="confirm-popover"><p>{locale === "he" ? `למחוק את הכרטיס '${item.title_he || ""}'?` : "حذف البطاقة؟"}</p><button type="button" className="outline-button" onClick={() => setConfirm(false)}>{locale === "he" ? "ביטול" : "إلغاء"}</button><form action={async (fd) => { await deleteSiteItem(locale, fd); setConfirm(false); }}><input type="hidden" name="id" value={item.id} /><button className="danger-button">{locale === "he" ? "מחיקה" : "حذف"}</button></form></div>}
-    {open && <EditorDrawer title={locale === "he" ? "עריכת כרטיס" : "تحرير البطاقة"} onClose={() => setOpen(false)}><ItemForm locale={locale} item={item} sectionId={item.section_id} close={() => setOpen(false)} onSaved={showSaved} /></EditorDrawer>}
+    {open && <EditorDrawer title={locale === "he" ? "עריכת כרטיס" : "تحرير البطاقة"} onClose={() => setOpen(false)}><ItemForm locale={locale} item={item} sectionId={item.section_id} close={() => setOpen(false)} onSaved={showSaved} portraitOnly={portraitOnly} /></EditorDrawer>}
   </>;
 }
 

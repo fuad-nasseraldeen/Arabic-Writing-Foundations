@@ -1,0 +1,6 @@
+export type WorksheetSkill = { id: string; key: string; name_he: string; name_ar: string | null; sort_order: number };
+export type WorksheetTag = { id: string; slug: string; name_he: string; name_ar: string | null };
+export type LetterGroup = { id: string; title_he: string | null; title_ar: string | null };
+export type Worksheet = { id: string; title_he: string; title_ar: string | null; description_he: string | null; description_ar: string | null; therapeutic_goal_he: string | null; therapeutic_goal_ar: string | null; difficulty: "easy" | "medium" | "hard"; skill_id: string | null; activity_type: string; age_group: "4-5" | "5-6" | "6-7" | "all" | null; letter_group_id: string | null; thumbnail_url: string | null; file_url: string | null; file_type: "image" | "pdf" | null; original_file_name: string | null; is_visible: boolean; sort_order: number; created_at: string; updated_at: string };
+export type WorksheetLibraryData = { worksheets: Worksheet[]; skills: WorksheetSkill[]; tags: WorksheetTag[]; worksheetTags: Record<string, string[]>; letterGroups: LetterGroup[]; columns: number };
+export const localized = (row: Record<string, unknown>, field: string, locale: "he" | "ar") => String(row[`${field}_${locale}`] || row[`${field}_he`] || "");
