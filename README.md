@@ -13,7 +13,7 @@ The application uses `@supabase/ssr` cookie sessions and has locale routes at `/
 1. Create a Supabase project and copy its Project URL and **publishable/anon** key into `.env.local` using `.env.example`.
 2. Apply the single consolidated migration: `supabase/migrations/20260831000000_initial_schema.sql` (or use `supabase db push`).
 3. In Storage, create the `site-media` bucket. Make it public only if direct public media URLs are desired; otherwise adapt the media page to use signed URLs.
-4. In Authentication → Providers, enable Google, enter the Google OAuth client ID/secret, and add `http://localhost:3000/auth/callback` plus the production `https://YOUR-DOMAIN/auth/callback` redirect URLs.
+4. In Authentication → URL Configuration, keep the production address as **Site URL** (it is only a fallback). Under **Redirect URLs**, add `http://localhost:3000/**` and `https://arabic-writing-foundations.vercel.app/**`. If using Vercel preview deployments, also add the preview wildcard supplied by your Vercel team, for example `https://*-YOUR-TEAM.vercel.app/**`. The browser login code explicitly returns to the origin where login began.
 5. In Google Cloud Console, configure the same Supabase callback URL shown by Supabase under the Google provider (normally `https://PROJECT_REF.supabase.co/auth/v1/callback`) as an authorized redirect URI.
 6. Sign in once with `fuadnasiraldin@gmail.com`, then run the commented bootstrap statement at the end of the migration in Supabase SQL Editor. Refresh `/he/admin`.
 

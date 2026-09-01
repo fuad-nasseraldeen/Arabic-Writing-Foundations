@@ -43,19 +43,23 @@ function ButtonLinkFields({ locale, initialValue }: { locale: Locale; initialVal
 function ItemForm({ locale, item, sectionId, close, onSaved }: { locale: Locale; item?: SiteItem; sectionId: string; close: () => void; onSaved: () => void }) {
   const [tab, setTab] = useState<Locale>(locale);
   const [hasButton, setHasButton] = useState(Boolean(item?.cta_label_he || item?.cta_label_ar || item?.cta_href));
+  const [text, setText] = useState({ title_he: item?.title_he || "", title_ar: item?.title_ar || "", description_he: item?.description_he || "", description_ar: item?.description_ar || "", cta_label_he: item?.cta_label_he || "", cta_label_ar: item?.cta_label_ar || "", media_title_he: item?.media_title_he || "", media_title_ar: item?.media_title_ar || "" });
   const link = item?.cta_href || `/${locale}`;
   const submit = async (formData: FormData) => { await saveSiteItem(locale, formData); onSaved(); close(); };
   return <form className="cms-form" action={submit}>
     <input type="hidden" name="id" value={item?.id || ""} />
     <input type="hidden" name="section_id" value={sectionId} />
     <input type="hidden" name="item_type" value={item?.item_type || "feature_card"} />
+    {Object.entries(text).map(([name, value]) => <input key={name} type="hidden" name={name} value={value} />)}
     <div className="editor-tabs"><button type="button" className={tab === "he" ? "active" : ""} onClick={() => setTab("he")}>עברית</button><button type="button" className={tab === "ar" ? "active" : ""} onClick={() => setTab("ar")}>العربية</button></div>
-    <label>{tab === "he" ? "כותרת" : "العنوان"}<input required={tab === "he"} name={`title_${tab}`} defaultValue={tab === "he" ? item?.title_he || "" : item?.title_ar || ""} /></label>
-    <label>{tab === "he" ? "תיאור" : "الوصف"}<textarea name={`description_${tab}`} defaultValue={tab === "he" ? item?.description_he || "" : item?.description_ar || ""} /></label>
+    <label>{tab === "he" ? "כותרת" : "العنوان"}<input required={tab === "he"} value={text[`title_${tab}`]} onChange={(event) => setText((current) => ({ ...current, [`title_${tab}`]: event.target.value }))} /></label>
+    <label>{tab === "he" ? "תיאור" : "الوصف"}<textarea value={text[`description_${tab}`]} onChange={(event) => setText((current) => ({ ...current, [`description_${tab}`]: event.target.value }))} /></label>
     <input type="hidden" name="has_button" value={hasButton ? "true" : "false"} />
     <label className="check"><input type="checkbox" checked={hasButton} onChange={(event) => setHasButton(event.target.checked)} />{tab === "he" ? "הצג כפתור בכרטיס" : "إظهار زر في البطاقة"}</label>
-    {hasButton && <><label>{tab === "he" ? "טקסט הכפתור" : "نص الزر"}<input name={`cta_label_${tab}`} defaultValue={tab === "he" ? item?.cta_label_he || "" : item?.cta_label_ar || ""} /></label><ButtonLinkFields locale={locale} initialValue={link} /></>}
-    <InlineMediaUpload locale={locale} initialUrl={item?.image_url || ""} />
+    {hasButton && <><label>{tab === "he" ? "טקסט הכפתור" : "نص الزر"}<input value={text[`cta_label_${tab}`]} onChange={(event) => setText((current) => ({ ...current, [`cta_label_${tab}`]: event.target.value }))} /></label><ButtonLinkFields locale={locale} initialValue={link} /></>}
+    <InlineMediaUpload locale={locale} initial={{ imageUrl: item?.image_url, fileUrl: item?.file_url, fileName: item?.original_file_name, mimeType: item?.media_mime_type }} />
+    <label>{tab === "he" ? "כותרת למדיה (אופציונלי)" : "عنوان الوسائط (اختياري)"}<input value={text[`media_title_${tab}`]} onChange={(event) => setText((current) => ({ ...current, [`media_title_${tab}`]: event.target.value }))} /></label>
+    <div className="media-options"><label>{tab === "he" ? "מיקום הקובץ" : "موضع الملف"}<select name="media_position" defaultValue={item?.media_position || "top"}><option value="top">{tab === "he" ? "למעלה" : "في الأعلى"}</option><option value="bottom">{tab === "he" ? "למטה" : "في الأسفل"}</option></select></label><label>{tab === "he" ? "גודל" : "الحجم"}<select name="media_size" defaultValue={item?.media_size || "medium"}><option value="small">{tab === "he" ? "קטן" : "صغير"}</option><option value="medium">{tab === "he" ? "בינוני" : "متوسط"}</option><option value="large">{tab === "he" ? "גדול" : "كبير"}</option></select></label><label>{tab === "he" ? "התאמת תמונה" : "ملاءمة الصورة"}<select name="media_fit" defaultValue={item?.media_fit || "cover"}><option value="cover">{tab === "he" ? "מילוי" : "ملء"}</option><option value="contain">{tab === "he" ? "התאמה מלאה" : "احتواء كامل"}</option></select></label></div>
     <label className="check"><input name="is_visible" type="checkbox" defaultChecked={item?.is_visible ?? true} />{tab === "he" ? "הכרטיס מוצג באתר" : "البطاقة ظاهرة في الموقع"}</label>
     <div className="drawer-actions"><button type="button" className="outline-button" onClick={close}>{tab === "he" ? "ביטול" : "إلغاء"}</button><SaveButton locale={tab} /></div>
   </form>;
