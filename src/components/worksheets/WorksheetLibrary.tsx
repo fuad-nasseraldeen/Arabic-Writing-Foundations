@@ -441,6 +441,7 @@ export function WorksheetLibrary({
     [confirm, setConfirm] = useState<Worksheet | null>(null),
     [deleteFile, setDeleteFile] = useState(true);
   const [difficulty, setDifficulty] = useState(() => params.get("difficulty") || "");
+  const [search, setSearch] = useState(() => params.get("q") || "");
   const get = (key: string) => params.get(key) || "";
   const setFilter = (key: string, value: string) => {
     if (key === "difficulty") setDifficulty(value);
@@ -455,7 +456,7 @@ export function WorksheetLibrary({
     () =>
       data.worksheets
         .filter((worksheet) => {
-          const search = get("q").toLocaleLowerCase();
+          const normalizedSearch = search.toLocaleLowerCase();
           const tags = data.worksheetTags[worksheet.id] || [];
           const tagText = tags
             .map((id) =>
@@ -478,7 +479,7 @@ export function WorksheetLibrary({
             .filter(Boolean)
             .join(" ")
             .toLowerCase();
-          if (search && !haystack.includes(search)) return false;
+          if (normalizedSearch && !haystack.includes(normalizedSearch)) return false;
           if (difficulty && worksheet.difficulty !== difficulty)
             return false;
           if (get("skill") && worksheet.skill_id !== get("skill")) return false;
@@ -507,10 +508,11 @@ export function WorksheetLibrary({
             );
           return b.created_at.localeCompare(a.created_at);
         }),
-    [data, params, locale, difficulty],
+    [data, params, locale, difficulty, search],
   );
   const clear = () => {
     setDifficulty("");
+    setSearch("");
     router.replace(pathname, { scroll: false });
   };
   const deleteCurrent = async () => {
@@ -538,8 +540,8 @@ export function WorksheetLibrary({
         <label className={styles.search}>
           <Search size={18} />
           <input
-            value={get("q")}
-            onChange={(event) => setFilter("q", event.target.value)}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
             placeholder={text(
               locale,
               "חפשו דף עבודה...",
@@ -674,7 +676,7 @@ export function WorksheetLibrary({
           </option>
           <option value="alpha">{text(locale, "א-ב", "أ-ي")}</option>
         </select>
-        {params.size > 0 && (
+        {(params.size > 0 || search) && (
           <button type="button" onClick={clear}>
             {text(locale, "נקה הכל", "مسح الكل")}
           </button>

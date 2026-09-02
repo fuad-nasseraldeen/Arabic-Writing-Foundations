@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { Locale } from "@/i18n/config";
-import type { SiteItem } from "@/lib/cms";
-import { local } from "@/lib/cms";
+import { local, type SiteItem } from "@/lib/cms-shared";
 
 export function CardButton({ item, locale }: { item: SiteItem; locale: Locale }) {
   const label = local(item, "cta_label", locale);
