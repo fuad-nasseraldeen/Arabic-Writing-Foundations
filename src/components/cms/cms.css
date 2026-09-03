@@ -427,7 +427,7 @@ html[data-edit-mode="on"] .cms-editable-card:hover {
 .author-pane .portrait .card-media img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: inherit;
   object-fit: cover;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -500,7 +500,7 @@ html[data-edit-mode="on"] .grid-settings-button {
   display: grid;
   gap: 15px;
 }
-.nested-grid-row {
+.content-list.nested-grid-row {
   display: grid;
   grid-template-columns: repeat(var(--nested-columns, 3), minmax(0, 1fr));
   gap: 15px;
@@ -538,6 +538,30 @@ html[data-edit-mode="on"] .grid-settings-button {
   font: inherit;
   cursor: pointer;
 }
+.nested-card-group {
+  cursor: pointer;
+}
+.nested-card-group > :not(.inline-card-controls) {
+  position: relative;
+  z-index: 1;
+}
+.nested-card-group .cms-group-trigger {
+  flex: 1 1 auto;
+}
+.nested-card-group:not(:has(.card-media)) .cms-group-trigger {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 100%;
+  padding: clamp(1.1rem, 0.9rem + 1vw, 1.55rem);
+  border-radius: inherit;
+  z-index: 3;
+}
+.nested-card-group:not(:has(.card-media)) .cms-group-trigger > span,
+.nested-card-group:not(:has(.card-media)) .cms-group-trigger > svg {
+  position: relative;
+  z-index: 1;
+}
 .cms-group-trigger > span {
   min-width: 0;
 }
@@ -556,7 +580,7 @@ html[data-edit-mode="on"] .grid-settings-button {
   transform: rotate(180deg);
 }
 .nested-add-card,
-.cms-top-level-add {
+.content-list.nested-grid-row.cms-top-level-add {
   display: contents;
 }
 .empty-child-groups {
@@ -939,5 +963,116 @@ html[data-edit-mode="on"] .grid-settings-button {
   .nested-card-active:after {
     bottom: -14px;
     height: 14px;
+  }
+}
+
+/* Open group tree: parent and descendants share one continuous surface.
+   The rounded bridge replaces the older gradient/line treatment. */
+.nested-grid-row-group:has(.nested-card-active.default),
+.nested-grid-row-group:has(.nested-card-active.minimal) {
+  --nested-tree-surface: var(--surface);
+}
+.nested-grid-row-group:has(.nested-card-active.sage) {
+  --nested-tree-surface: var(--sage);
+}
+.nested-grid-row-group:has(.nested-card-active.peach) {
+  --nested-tree-surface: var(--peach);
+}
+.nested-grid-row-group:has(.nested-card-active.lavender) {
+  --nested-tree-surface: var(--lavender);
+}
+.nested-grid-row-group:has(.nested-card-active.yellow) {
+  --nested-tree-surface: var(--yellow);
+}
+.nested-grid-row-group:has(.nested-child-region.is-open) {
+  background: var(--nested-tree-surface, var(--surface));
+  border-radius: var(--radius-xl, 26px);
+}
+.nested-grid-row-group:has(.nested-child-region.is-open) .nested-card-active,
+.nested-grid-row-group:has(.nested-child-region.is-open) .nested-child-region,
+.nested-grid-row-group:has(.nested-child-region.is-open)
+  .nested-child-region
+  .nested-card {
+  background: var(--nested-tree-surface, var(--surface));
+}
+.nested-grid-row-group:has(.nested-child-region.is-open) .nested-card-active {
+  border-bottom-color: transparent !important;
+  box-shadow: none;
+}
+.nested-child-region {
+  margin-top: 0;
+  padding: 0 24px;
+  border-radius: 0 0 var(--radius-xl, 26px) var(--radius-xl, 26px);
+  background: var(--nested-tree-surface, var(--surface));
+  transform: translateY(-4px);
+}
+.nested-child-region:before {
+  top: -22px;
+  right: calc(var(--nested-connector-x, 50%) - 22px);
+  width: 44px;
+  height: 24px;
+  background: var(--nested-tree-surface, var(--surface));
+  border-radius: 22px 22px 0 0;
+}
+.nested-child-region.is-open {
+  padding: 28px 24px 24px;
+}
+.nested-card-active:after {
+  bottom: -22px;
+  width: 44px;
+  height: 24px;
+  background: var(--nested-tree-surface, var(--surface));
+  border-radius: 0 0 22px 22px;
+}
+.nested-card-active:after,
+.nested-child-region:before {
+  pointer-events: none;
+}
+.nested-child-region .nested-grid-row {
+  gap: 14px;
+}
+@media (max-width: 680px) {
+  .nested-child-region {
+    padding-inline: 14px;
+  }
+  .nested-child-region.is-open {
+    padding: 23px 14px 16px;
+  }
+  .nested-child-region:before {
+    right: calc(var(--nested-connector-x, 50%) - 18px);
+    width: 36px;
+    height: 20px;
+  }
+  .nested-card-active:after {
+    bottom: -18px;
+    width: 36px;
+    height: 20px;
+  }
+}
+
+/* Keep short rows centred while retaining the parent-child connector position. */
+.cms-card-grid {
+  justify-content: center;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 17rem), 22rem)
+  ) !important;
+}
+.content-list.nested-grid-row {
+  justify-content: center;
+  grid-template-columns: repeat(
+    var(--nested-row-columns, var(--nested-columns, 3)),
+    minmax(0, 22rem)
+  );
+}
+.content-list.nested-grid-row.cms-top-level-add {
+  justify-content: center;
+  grid-template-columns: minmax(0, 22rem);
+}
+@media (max-width: 680px) {
+  .cms-card-grid,
+  .content-list.nested-grid-row,
+  .content-list.nested-grid-row.cms-top-level-add {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }

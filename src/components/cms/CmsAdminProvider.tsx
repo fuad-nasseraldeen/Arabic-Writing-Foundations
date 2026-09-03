@@ -2,11 +2,14 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import Link from "next/link";
-import { Settings } from "lucide-react";
+import { Lightbulb, Settings } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 
 type CmsAdminState = { isAdmin: boolean; editing: boolean };
-const CmsAdminContext = createContext<CmsAdminState>({ isAdmin: false, editing: false });
+const CmsAdminContext = createContext<CmsAdminState>({
+  isAdmin: false,
+  editing: false,
+});
 const editModeEvent = "cms-edit-mode-change";
 
 export function useCmsAdmin() {
@@ -18,7 +21,8 @@ export function useCmsEditMode() {
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
-    const sync = () => setEditing(document.documentElement.dataset.editMode === "on");
+    const sync = () =>
+      setEditing(document.documentElement.dataset.editMode === "on");
     sync();
     window.addEventListener(editModeEvent, sync);
     return () => window.removeEventListener(editModeEvent, sync);
@@ -66,7 +70,14 @@ export function CmsAdminProvider({
         <div className="admin-toolbar">
           <b>{locale === "he" ? "מצב עריכה" : "وضع التحرير"}</b>
           <button onClick={toggle}>{editing ? "ON" : "OFF"}</button>
-          <Link href={`/${locale}/admin`} className="admin-settings-link"><Settings size={16} />{locale === "he" ? "הגדרות" : "الإعدادات"}</Link>
+          <Link href={`/${locale}/admin/tips`} className="admin-settings-link">
+            <Lightbulb size={16} />
+            {locale === "he" ? "ניהול טיפים" : "إدارة النصائح"}
+          </Link>
+          <Link href={`/${locale}/admin`} className="admin-settings-link">
+            <Settings size={16} />
+            {locale === "he" ? "הגדרות" : "الإعدادات"}
+          </Link>
         </div>
       )}
       {children}

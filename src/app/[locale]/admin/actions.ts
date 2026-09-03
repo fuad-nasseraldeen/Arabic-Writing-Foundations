@@ -96,6 +96,150 @@ export async function deleteContent(locale: string, formData: FormData) {
   if (error) throw new Error(error.message);
   revalidatePath(`/${locale}/admin/content`);
 }
+const weeklyTipIcons = ["lightbulb", "leaf", "brain", "star", "pencil", "book"];
+async function refreshWeeklyTips(locale: string) {
+  revalidateTag("weekly-tips", "max");
+  revalidatePath(`/${locale}/weekly-tip`);
+  revalidatePath("/weekly-tip");
+  revalidatePath(`/${locale}/admin/tips`);
+}
+export async function saveWeeklyTip(locale: string, formData: FormData) {
+  const user = await requireAdmin(locale);
+  const supabase = await createClient();
+  const id = value(formData, "id");
+  const icon_key = value(formData, "icon_key") || "lightbulb";
+  if (!weeklyTipIcons.includes(icon_key))
+    throw new Error("Invalid weekly tip icon.");
+  const data = {
+    title_he: value(formData, "title_he"),
+    title_ar: value(formData, "title_ar") || null,
+    description_he: value(formData, "description_he"),
+    description_ar: value(formData, "description_ar") || null,
+    category: value(formData, "category") || null,
+    icon_key,
+    is_active: formData.get("is_active") === "on",
+    updated_by: user.id,
+  };
+  if (!data.title_he || !data.description_he)
+    throw new Error("Weekly tip title and description are required.");
+  if (id) {
+    const { data: before } = await supabase
+      .from("weekly_tips")
+      .select("*")
+      .eq("id", id)
+      .single();
+    const { error } = await supabase
+      .from("weekly_tips")
+      .update(data)
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+    await audit("weekly_tip", id, "update", before, data, user.id);
+  } else {
+    const { data: last } = await supabase
+      .from("weekly_tips")
+      .select("sort_order")
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const { data: created, error } = await supabase
+      .from("weekly_tips")
+      .insert({
+        ...data,
+        sort_order: (last?.sort_order || 0) + 1,
+        created_by: user.id,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    await audit("weekly_tip", created.id, "create", null, data, user.id);
+  }
+  await refreshWeeklyTips(locale);
+}
+export async function deleteWeeklyTip(locale: string, formData: FormData) {
+  const user = await requireAdmin(locale);
+  const supabase = await createClient();
+  const id = value(formData, "id");
+  const { data: before } = await supabase
+    .from("weekly_tips")
+    .select("*")
+    .eq("id", id)
+    .single();
+  const { error } = await supabase.from("weekly_tips").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  if (before) await audit("weekly_tip", id, "delete", before, null, user.id);
+  await refreshWeeklyTips(locale);
+}
+export async function toggleWeeklyTipActive(
+  locale: string,
+  formData: FormData,
+) {
+  const user = await requireAdmin(locale);
+  const supabase = await createClient();
+  const id = value(formData, "id");
+  const { data: before, error: readError } = await supabase
+    .from("weekly_tips")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (readError || !before)
+    throw new Error(readError?.message || "Weekly tip not found.");
+  const { error } = await supabase
+    .from("weekly_tips")
+    .update({ is_active: !before.is_active, updated_by: user.id })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  await audit(
+    "weekly_tip",
+    id,
+    before.is_active ? "hide" : "update",
+    before,
+    { ...before, is_active: !before.is_active },
+    user.id,
+  );
+  await refreshWeeklyTips(locale);
+}
+export async function moveWeeklyTip(locale: string, formData: FormData) {
+  const user = await requireAdmin(locale);
+  const supabase = await createClient();
+  const id = value(formData, "id"),
+    direction = value(formData, "direction");
+  const { data: current } = await supabase
+    .from("weekly_tips")
+    .select("id,sort_order")
+    .eq("id", id)
+    .single();
+  if (!current) return;
+  const op = direction === "up" ? "lt" : "gt";
+  const order = direction === "up" ? { ascending: false } : { ascending: true };
+  const { data: other } = await supabase
+    .from("weekly_tips")
+    .select("id,sort_order")
+    [op]("sort_order", current.sort_order)
+    .order("sort_order", order)
+    .limit(1)
+    .maybeSingle();
+  if (other) {
+    const first = await supabase
+      .from("weekly_tips")
+      .update({ sort_order: other.sort_order, updated_by: user.id })
+      .eq("id", current.id);
+    const second = await supabase
+      .from("weekly_tips")
+      .update({ sort_order: current.sort_order, updated_by: user.id })
+      .eq("id", other.id);
+    if (first.error || second.error)
+      throw new Error(first.error?.message || second.error?.message);
+    await audit(
+      "weekly_tip",
+      id,
+      "update",
+      current,
+      { ...current, sort_order: other.sort_order },
+      user.id,
+    );
+  }
+  await refreshWeeklyTips(locale);
+}
 export async function addAdmin(locale: string, formData: FormData) {
   const user = await requireAdmin(locale);
   const email = value(formData, "email").toLowerCase();
@@ -161,16 +305,14 @@ async function audit(
   userId: string,
 ) {
   const supabase = await createClient();
-  await supabase
-    .from("content_revisions")
-    .insert({
-      entity_type,
-      entity_id,
-      action,
-      previous_data,
-      new_data,
-      changed_by: userId,
-    });
+  await supabase.from("content_revisions").insert({
+    entity_type,
+    entity_id,
+    action,
+    previous_data,
+    new_data,
+    changed_by: userId,
+  });
 }
 export async function saveSection(locale: string, formData: FormData) {
   const user = await requireAdmin(locale);
@@ -506,9 +648,8 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
     section_id,
     parent_id: value(formData, "parent_id") || before?.parent_id || null,
     item_type: before?.item_type || "feature_card",
-    click_behavior: ["content", "link", "media", "children"].includes(value(formData, "click_behavior"))
-      ? value(formData, "click_behavior")
-      : before?.click_behavior || "content",
+    click_behavior:
+      value(formData, "click_behavior") === "children" ? "children" : "content",
     title_he: value(formData, "title_he"),
     title_ar: value(formData, "title_ar") || null,
     description_he: value(formData, "description_he") || null,
@@ -529,11 +670,21 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
     media_fit: ["cover", "contain"].includes(value(formData, "media_fit"))
       ? value(formData, "media_fit")
       : "cover",
-    media_position: ["top", "bottom"].includes(value(formData, "media_position"))
+    media_position: ["top", "bottom"].includes(
+      value(formData, "media_position"),
+    )
       ? value(formData, "media_position")
       : before?.media_position || "top",
     is_visible: formData.get("is_visible") === "on",
-    settings: { ...(before?.settings || {}), contentBlocks: blocks, childColumns: [1, 2, 3, 4].includes(Number(value(formData, "child_columns"))) ? Number(value(formData, "child_columns")) : before?.settings?.childColumns || 3 },
+    settings: {
+      ...(before?.settings || {}),
+      contentBlocks: blocks,
+      childColumns: [1, 2, 3, 4].includes(
+        Number(value(formData, "child_columns")),
+      )
+        ? Number(value(formData, "child_columns"))
+        : before?.settings?.childColumns || 3,
+    },
     updated_by: user.id,
   };
   if (!data.title_he) throw new Error("Hebrew title is required.");
@@ -716,14 +867,12 @@ export async function saveWorksheet(locale: string, formData: FormData) {
     tagIds.push(tag.id);
   }
   if (tagIds.length) {
-    const { error } = await supabase
-      .from("worksheet_tags")
-      .insert(
-        [...new Set(tagIds)].map((tag_id) => ({
-          worksheet_id: worksheetId,
-          tag_id,
-        })),
-      );
+    const { error } = await supabase.from("worksheet_tags").insert(
+      [...new Set(tagIds)].map((tag_id) => ({
+        worksheet_id: worksheetId,
+        tag_id,
+      })),
+    );
     if (error) throw new Error(error.message);
   }
   await audit(

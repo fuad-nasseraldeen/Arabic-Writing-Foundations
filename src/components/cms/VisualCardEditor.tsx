@@ -144,7 +144,9 @@ export function VisualCardEditor({
     ar: item?.cta_label_ar || "",
     href: item?.cta_href || `/${locale}`,
   });
-  const [behavior, setBehavior] = useState(item?.click_behavior || "content");
+  const [behavior, setBehavior] = useState(
+    item?.click_behavior === "children" ? "children" : "content",
+  );
   const [media, setMedia] = useState({
     url: item?.file_url || item?.image_url || "",
     name: item?.original_file_name || "",

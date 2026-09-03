@@ -46,7 +46,19 @@ function CmsCard({
   const regionId = `child-groups-${item.id}`;
   return (
     <article
-      className={`cms-editable-card nested-card ${expanded ? "nested-card-active" : ""}`}
+      className={`cms-editable-card nested-card ${item.variant || "default"} ${isGroup ? "nested-card-group" : ""} ${expanded ? "nested-card-active" : ""}`}
+      onClick={
+        isGroup
+          ? (event) => {
+              const target = event.target as HTMLElement;
+              if (
+                !target.closest("button, a, input, select, textarea, label")
+              ) {
+                onToggle();
+              }
+            }
+          : undefined
+      }
     >
       <InlineItemEditor locale={locale} item={item} childItems={childItems} />
       <CardMedia item={item} locale={locale} position="top" />
@@ -130,11 +142,14 @@ function NestedGrid({
             className="nested-grid-row-group"
             key={`${depth}-${rowIndex}`}
             style={
-              expandedIndex >= 0
-                ? ({
-                    "--nested-connector-x": `${((expandedIndex + 0.5) / actualColumns) * 100}%`,
-                  } as React.CSSProperties)
-                : undefined
+              {
+                "--nested-row-columns": Math.max(1, row.length),
+                ...(expandedIndex >= 0
+                  ? {
+                      "--nested-connector-x": `${((expandedIndex + 0.5) / row.length) * 100}%`,
+                    }
+                  : {}),
+              } as React.CSSProperties
             }
           >
             <div className="content-list nested-grid-row">
@@ -179,8 +194,7 @@ function NestedGrid({
                     locale === "he" ? "תתי־קבוצות" : "المجموعות الفرعية"
                   }
                 >
-                  <h3 className="nested-region-heading">
-                  </h3>
+                  <h3 className="nested-region-heading"></h3>
                   <NestedGrid
                     locale={locale}
                     allItems={allItems}

@@ -1,1 +1,4 @@
-import { Lightbulb } from "lucide-react"; export default function Page(){return <div className="page-shell container"><span className="eyebrow">כלי קטן לשבוע הקרוב</span><h1>טיפ השבוע</h1><article className="tip-card"><Lightbulb/><h2>הפרידו בין רכיבי האות</h2><p>בעת תרגול אות הכוללת גוף ונקודה, אפשר לאפשר לילד להשלים תחילה את הגוף ורק לאחר מכן להוסיף את הנקודה. כך ניתן להתבונן בנפרד ברצף התנועה ובמיקום במרחב.</p><small>דוגמת תוכן מקצועי – תיבדק ותורחב במסגרת הפרויקט.</small></article></div>}
+import { WeeklyTipPage } from "@/components/pages/WeeklyTipPage";
+export default function Page() {
+  return <WeeklyTipPage locale="he" />;
+}
