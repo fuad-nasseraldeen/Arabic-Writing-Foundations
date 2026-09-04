@@ -1076,3 +1076,75 @@ html[data-edit-mode="on"] .grid-settings-button {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
+
+/* An opened branch connects only its parent card to its own children. */
+.nested-grid-row-group:has(.nested-child-region.is-open) {
+  background: transparent;
+  border-radius: 0;
+}
+.nested-grid-row-group:has(.nested-child-region.is-open) .nested-child-region {
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  transform: none;
+}
+.nested-grid-row-group:has(.nested-child-region.is-open)
+  .nested-child-region.is-open {
+  padding: 0;
+}
+.nested-grid-row-group:has(.nested-child-region.is-open) .nested-card-active {
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--teal),
+    var(--border) 35%
+  ) !important;
+  box-shadow: 0 5px 16px color-mix(in srgb, var(--teal-dark), transparent 88%);
+}
+.nested-grid-row-group:has(.nested-child-region.is-open)
+  .nested-card-active:after,
+.nested-grid-row-group:has(.nested-child-region.is-open)
+  .nested-child-region:before {
+  width: 2px;
+  height: 18px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--teal), transparent 58%);
+}
+.nested-grid-row-group:has(.nested-child-region.is-open)
+  .nested-card-active:after {
+  right: 50%;
+  bottom: -18px;
+  translate: 50% 0;
+}
+.nested-grid-row-group:has(.nested-child-region.is-open)
+  .nested-child-region:before {
+  top: -18px;
+  right: var(--nested-connector-x, 50%);
+}
+.nested-grid-row-group:has(.nested-child-region.is-open)
+  .nested-child-region
+  .nested-grid-wrap {
+  padding-top: 18px;
+}
+@media (max-width: 680px) {
+  .nested-grid-row-group:has(.nested-child-region.is-open)
+    .nested-card-active:after,
+  .nested-grid-row-group:has(.nested-child-region.is-open)
+    .nested-child-region:before {
+    height: 14px;
+  }
+  .nested-grid-row-group:has(.nested-child-region.is-open)
+    .nested-card-active:after {
+    bottom: -14px;
+  }
+  .nested-grid-row-group:has(.nested-child-region.is-open)
+    .nested-child-region:before {
+    top: -14px;
+  }
+  .nested-grid-row-group:has(.nested-child-region.is-open)
+    .nested-child-region
+    .nested-grid-wrap {
+    padding-top: 14px;
+  }
+}

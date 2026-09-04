@@ -1574,7 +1574,7 @@ main {
 .project-preview {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  width: min(100%, 58rem);
+  width: min(100%, 52rem);
   margin: 0 auto var(--space-xl);
   gap: clamp(1rem, 2vw, 1.5rem);
   overflow: visible;
@@ -1584,7 +1584,7 @@ main {
 }
 .project-preview article {
   min-height: 0;
-  padding: clamp(1.5rem, 3vw, 2.5rem);
+  padding: clamp(1.35rem, 2.6vw, 2.15rem);
   border-radius: var(--radius-xl);
 }
 .project-preview .author-pane {
@@ -1634,7 +1634,8 @@ main {
 }
 .project-pane .book-mark {
   top: clamp(1.25rem, 3vw, 2rem);
-  left: clamp(1.25rem, 3vw, 2rem);
+  right: clamp(1.25rem, 3vw, 2rem);
+  left: auto;
   color: color-mix(in srgb, white, var(--sage) 35%);
   font-size: 1.25rem;
 }
@@ -1648,6 +1649,9 @@ main {
   border-radius: var(--radius-lg);
 }
 @media (max-width: 42rem) {
+  .project-preview {
+    width: min(calc(100% - 2rem), 52rem);
+  }
   .project-preview .author-pane {
     align-items: flex-start;
     gap: var(--space-md);
