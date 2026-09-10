@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { FileText, FileUp, ImageIcon, Replace, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/i18n/config";
@@ -24,22 +24,21 @@ const labels = (locale: Locale) =>
         pdf: "مستند PDF",
       };
 
-export function InlineMediaUpload({
+export type InlineMediaUploadHandle = { open: () => void };
+
+export const InlineMediaUpload = forwardRef<InlineMediaUploadHandle, {
+  locale: Locale;
+  initial: { imageUrl?: string | null; fileUrl?: string | null; fileName?: string | null; mimeType?: string | null };
+  onChange?: (media: { url: string; name: string; mime: string }) => void;
+  includeFields?: boolean;
+  compact?: boolean;
+}> (function InlineMediaUpload({
   locale,
   initial,
   onChange,
   includeFields = true,
-}: {
-  locale: Locale;
-  initial: {
-    imageUrl?: string | null;
-    fileUrl?: string | null;
-    fileName?: string | null;
-    mimeType?: string | null;
-  };
-  onChange?: (media: { url: string; name: string; mime: string }) => void;
-  includeFields?: boolean;
-}) {
+  compact = false,
+}, ref) {
   const initialUrl = initial.imageUrl || initial.fileUrl || "";
   const [url, setUrl] = useState(initialUrl);
   const [name, setName] = useState(initial.fileName || "");
@@ -52,6 +51,7 @@ export function InlineMediaUpload({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const input = useRef<HTMLInputElement>(null);
+  useImperativeHandle(ref, () => ({ open: () => input.current?.click() }));
   const copy = labels(locale);
   const isPdf = mime === "application/pdf";
   const upload = async (file: File) => {
@@ -128,7 +128,7 @@ export function InlineMediaUpload({
           if (file) upload(file);
         }}
       />
-      {url ? (
+      {!compact && url ? (
         <div className="editor-media-preview">
           {isPdf ? (
             <FileText size={32} aria-hidden="true" />
@@ -157,7 +157,7 @@ export function InlineMediaUpload({
             <X size={17} />
           </button>
         </div>
-      ) : (
+      ) : !compact ? (
         <button
           type="button"
           className="file-upload-button"
@@ -171,8 +171,8 @@ export function InlineMediaUpload({
               : "جارٍ الرفع…"
             : copy.upload}
         </button>
-      )}
+      ) : null}
       {error && <small className="form-error">{error}</small>}
     </div>
   );
-}
+});

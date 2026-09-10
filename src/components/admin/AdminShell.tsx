@@ -36,7 +36,7 @@ export function AdminShell({
       <aside className="admin-sidebar">
         <b>{d.admin.welcome}</b>
         {links.map(([href, key]) => (
-          <Link href={`/${locale}/admin/${href}`} key={key}>
+          <Link href={`/${locale}/admin/${href}`} key={key} prefetch={true}>
             {labels[key]}
           </Link>
         ))}

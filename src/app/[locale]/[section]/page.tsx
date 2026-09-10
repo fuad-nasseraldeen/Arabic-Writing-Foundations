@@ -5,6 +5,7 @@ import { LocalizedContentPage } from "@/components/pages/LocalizedContentPage";
 import { LocalizedWorksheetPage } from "@/components/pages/LocalizedWorksheetPage";
 import { WeeklyTipPage } from "@/components/pages/WeeklyTipPage";
 import { isAdmin } from "@/lib/auth";
+import { isCmsEditMode } from "@/lib/cms-edit-mode";
 const entries = {
   letters: {
     he: ["מפת אותיות", "קבוצות חזותיות", "ניתוח אות"],
@@ -43,7 +44,8 @@ export default async function Page({
 }) {
   const { locale, section } = await params;
   if (!isLocale(locale) || !(section in entries)) notFound();
-  const admin = await isAdmin();
+  const editing = await isCmsEditMode();
+  const admin = editing && await isAdmin();
   if (section === "worksheets")
     return <LocalizedWorksheetPage locale={locale} isAdmin={admin} />;
   if (section === "weekly-tip") return <WeeklyTipPage locale={locale} />;

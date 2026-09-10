@@ -115,7 +115,7 @@ export async function LocalizedHome({
               return (
                 <article
                   key={item.id}
-                  className={`feature-card cms-editable-card ${item.variant || ""}`}
+                  className={`feature-card interactive-card cms-editable-card ${item.variant || ""}`}
                 >
                   <InlineItemEditor locale={locale} item={item} />
                   <CardMedia item={item} locale={locale} position="top" />
@@ -156,7 +156,7 @@ export async function LocalizedHome({
               return (
                 <article
                   key={item.id}
-                  className={`explore-card cms-editable-card ${item.variant || ""}`}
+                  className={`explore-card interactive-card cms-editable-card ${item.variant || ""}`}
                 >
                   <InlineItemEditor locale={locale} item={item} />
                   <CardMedia item={item} locale={locale} position="top" />

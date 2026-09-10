@@ -1,9 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Lightbulb, Settings } from "lucide-react";
 import type { Locale } from "@/i18n/config";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { setCmsEditMode } from "@/app/actions/cms-edit-mode";
+import { useRouter } from "next/navigation";
 
 type CmsAdminState = { isAdmin: boolean; editing: boolean };
 const CmsAdminContext = createContext<CmsAdminState>({
@@ -36,14 +39,15 @@ export function useCmsEditMode() {
  * The edit switch is purely presentation; every write still calls requireAdmin.
  */
 export function CmsAdminProvider({
-  isAdmin,
   locale,
   children,
 }: {
-  isAdmin: boolean;
   locale: Locale;
   children: React.ReactNode;
 }) {
+  const { isAdmin } = useAuth();
+  const router = useRouter();
+  const [, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
 
   const applyEditMode = (next: boolean) => {
@@ -54,7 +58,12 @@ export function CmsAdminProvider({
   };
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin) {
+      setEditing(false);
+      document.documentElement.dataset.editMode = "off";
+      window.dispatchEvent(new Event(editModeEvent));
+      return;
+    }
     const initial = sessionStorage.getItem("cms-edit-mode") === "on";
     applyEditMode(initial);
   }, [isAdmin]);
@@ -62,6 +71,12 @@ export function CmsAdminProvider({
   const toggle = () => {
     const next = !editing;
     applyEditMode(next);
+    // This is the one intentional refresh: it swaps cached published CMS for
+    // the verified admin/draft server view after an explicit mode change.
+    startTransition(async () => {
+      await setCmsEditMode(locale, next);
+      router.refresh();
+    });
   };
 
   return (

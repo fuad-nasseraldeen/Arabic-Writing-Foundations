@@ -364,8 +364,9 @@ export async function saveSection(locale: string, formData: FormData) {
     data,
     user.id,
   );
-  revalidateTag(`cms:${before?.page_key || "home"}`, "max");
-  revalidatePath(`/${locale}`);
+  const page = before?.page_key || "home";
+  revalidateTag(`cms:${page}`, "max");
+  revalidatePath(`/${locale}${page === "home" ? "" : `/${page}`}`);
   revalidatePath(`/${locale}/admin/pages`);
 }
 export async function moveSection(locale: string, formData: FormData) {
@@ -407,7 +408,8 @@ export async function moveSection(locale: string, formData: FormData) {
       user.id,
     );
   }
-  revalidatePath(`/${locale}`);
+  revalidateTag(`cms:${current.page_key}`, "max");
+  revalidatePath(`/${locale}${current.page_key === "home" ? "" : `/${current.page_key}`}`);
 }
 export async function saveTheme(locale: string, formData: FormData) {
   const user = await requireAdmin(locale);
@@ -422,6 +424,34 @@ export async function saveTheme(locale: string, formData: FormData) {
   const { error } = await supabase
     .from("theme_settings")
     .update({ name: theme_key, theme_key, updated_by: user.id })
+    .eq("is_active", true);
+  if (error) throw new Error(error.message);
+  revalidateTag("theme", "max");
+  revalidatePath(`/${locale}/admin/design`);
+}
+export async function saveTypography(locale: string, formData: FormData) {
+  const user = await requireAdmin(locale);
+  const supabase = await createClient();
+  const typographyPreset = value(formData, "typography_preset");
+  const textScale = value(formData, "text_scale");
+  if (
+    !["clean", "soft", "modern"].includes(typographyPreset) ||
+    !["compact", "normal", "large"].includes(textScale)
+  ) {
+    throw new Error("Invalid typography preset.");
+  }
+  const { data: current, error: readError } = await supabase
+    .from("theme_settings")
+    .select("tokens")
+    .eq("is_active", true)
+    .single();
+  if (readError) throw new Error(readError.message);
+  const { error } = await supabase
+    .from("theme_settings")
+    .update({
+      tokens: { ...(current?.tokens || {}), typographyPreset, textScale },
+      updated_by: user.id,
+    })
     .eq("is_active", true);
   if (error) throw new Error(error.message);
   revalidateTag("theme", "max");
@@ -641,6 +671,18 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
     const parsed = JSON.parse(value(formData, "content_blocks") || "[]");
     if (Array.isArray(parsed)) blocks = parsed.slice(0, 30);
   } catch {}
+  let titleStyle: Record<string, unknown> = {};
+  try {
+    const parsed = JSON.parse(value(formData, "title_style") || "{}");
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed))
+      titleStyle = parsed;
+  } catch {}
+  if (!["start", "center", "end"].includes(String(titleStyle.align)))
+    delete titleStyle.align;
+  if (!["small", "normal", "large", "heading"].includes(String(titleStyle.size)))
+    delete titleStyle.size;
+  if (typeof titleStyle.bold !== "boolean") delete titleStyle.bold;
+  if (typeof titleStyle.underline !== "boolean") delete titleStyle.underline;
   const { data: before } = id
     ? await supabase.from("site_items").select("*").eq("id", id).single()
     : { data: null };
@@ -679,6 +721,7 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
     settings: {
       ...(before?.settings || {}),
       contentBlocks: blocks,
+      titleStyle,
       childColumns: [1, 2, 3, 4].includes(
         Number(value(formData, "child_columns")),
       )

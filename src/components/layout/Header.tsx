@@ -7,11 +7,7 @@ import type { Locale } from "@/i18n/config";
 import { t } from "@/i18n/dictionaries";
 import { createClient } from "@/lib/supabase/client";
 import { startNavigationProgress } from "@/components/navigation/NavigationProgress";
-type HeaderUser = {
-  email?: string;
-  full_name?: string;
-  avatar_url?: string;
-} | null;
+import { useAuth, type HeaderUser } from "@/components/auth/AuthProvider";
 export function Brand({ locale }: { locale: Locale }) {
   const d = t(locale);
   return (
@@ -56,16 +52,13 @@ function Avatar({ user }: { user: NonNullable<HeaderUser> }) {
 }
 export function Header({
   locale,
-  user,
-  isAdmin,
 }: {
   locale: Locale;
-  user: HeaderUser;
-  isAdmin: boolean;
 }) {
   const d = t(locale),
     path = usePathname(),
     router = useRouter();
+  const { user, isAdmin } = useAuth();
   const [open, setOpen] = useState(false),
     [drop, setDrop] = useState(false);
   const switchTo = (to: Locale) => {
@@ -98,7 +91,6 @@ export function Header({
     await createClient().auth.signOut();
     setDrop(false);
     router.replace(`/${locale}`);
-    router.refresh();
   };
   return (
     <header className="header">
@@ -114,6 +106,7 @@ export function Header({
               <Link
                 key={key}
                 href={`/${locale}/${hrefs[i]}`}
+                prefetch={true}
                 aria-current={current ? "page" : undefined}
               >
                 {d.nav[key]}
@@ -205,6 +198,7 @@ export function Header({
               <Link
                 key={key}
                 href={`/${locale}/${hrefs[i]}`}
+                prefetch={true}
                 aria-current={current ? "page" : undefined}
                 onClick={() => setOpen(false)}
               >

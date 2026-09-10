@@ -26,7 +26,7 @@ import { localized } from "@/lib/worksheet-types";
 import { deleteWorksheet, saveWorksheet } from "@/app/[locale]/admin/actions";
 import { EditorDrawer } from "@/components/cms/EditorDrawer";
 import { WorksheetMediaUpload } from "./WorksheetMediaUpload";
-import { useCmsEditMode } from "@/components/cms/CmsAdminProvider";
+import { useCmsAdmin, useCmsEditMode } from "@/components/cms/CmsAdminProvider";
 import styles from "./WorksheetLibrary.module.css";
 
 const activities = [
@@ -425,12 +425,13 @@ function WorksheetEditor({
 export function WorksheetLibrary({
   locale,
   data,
-  isAdmin,
+  isAdmin: _isAdmin,
 }: {
   locale: Locale;
   data: WorksheetLibraryData;
   isAdmin: boolean;
 }) {
+  const { isAdmin } = useCmsAdmin();
   const router = useRouter(),
     pathname = usePathname(),
     params = useSearchParams();
