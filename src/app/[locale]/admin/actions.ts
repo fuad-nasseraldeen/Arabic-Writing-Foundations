@@ -689,18 +689,7 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
     delete cardStyle.border;
   if (!["compact", "normal", "relaxed"].includes(String(cardStyle.density)))
     delete cardStyle.density;
-  const childCount =
-    cardStyle.childCount && typeof cardStyle.childCount === "object" && !Array.isArray(cardStyle.childCount)
-      ? (cardStyle.childCount as Record<string, unknown>)
-      : {};
-  if (typeof childCount.visible !== "boolean") delete childCount.visible;
-  if (!["top-start", "top-end", "bottom-start", "bottom-end"].includes(String(childCount.position)))
-    delete childCount.position;
-  if (typeof childCount.border !== "boolean") delete childCount.border;
-  if (!["subtle", "emphasized"].includes(String(childCount.variant)))
-    delete childCount.variant;
-  if (Object.keys(childCount).length) cardStyle.childCount = childCount;
-  else delete cardStyle.childCount;
+  if (typeof cardStyle.showItemCount !== "boolean") delete cardStyle.showItemCount;
   const { data: before } = id
     ? await supabase.from("site_items").select("*").eq("id", id).single()
     : { data: null };
@@ -743,14 +732,6 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
       cardStyle: {
         ...(before?.settings?.cardStyle || {}),
         ...cardStyle,
-        ...(cardStyle.childCount
-          ? {
-              childCount: {
-                ...((before?.settings?.cardStyle as Record<string, unknown> | undefined)?.childCount as Record<string, unknown> || {}),
-                ...(cardStyle.childCount as Record<string, unknown>),
-              },
-            }
-          : {}),
       },
       childColumns: [1, 2, 3, 4].includes(
         Number(value(formData, "child_columns")),

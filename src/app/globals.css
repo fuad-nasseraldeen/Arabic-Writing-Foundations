@@ -267,21 +267,6 @@ button:focus-visible {
   grid-template-columns: repeat(4, 1fr);
   gap: 17px;
 }
-.feature-card {
-  background: #fffdfa;
-  padding: 24px;
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  min-height: 255px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 16px #3b584508;
-  transition: 0.22s;
-}
-.feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow);
-}
 .feature-icon {
   width: 62px;
   height: 62px;
@@ -301,16 +286,6 @@ button:focus-visible {
 }
 .yellow .feature-icon {
   background: var(--yellow);
-}
-.feature-card h2 {
-  font-size: 22px;
-  margin: 0 0 8px;
-}
-.feature-card p {
-  font-size: 15.5px;
-  line-height: 1.6;
-  color: var(--muted);
-  margin: 0;
 }
 .card-link,
 .text-link {
@@ -345,45 +320,6 @@ button:focus-visible {
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
 }
-.explore-card {
-  background: #f1f5ee;
-  border: 1px solid #dde8e1;
-  border-radius: 22px;
-  padding: 25px;
-  transition: 0.2s;
-}
-.explore-card:nth-child(2) {
-  background: #f7f0e7;
-  border-color: #eee0d0;
-}
-.explore-card:nth-child(3) {
-  background: #f0eff5;
-  border-color: #e1dfeb;
-}
-.explore-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow);
-}
-.explore-card svg {
-  color: var(--teal-dark);
-}
-.explore-card h3 {
-  font-size: 21px;
-  margin: 12px 0 3px;
-}
-.explore-card p {
-  color: var(--muted);
-  font-size: 15.5px;
-  margin: 0;
-}
-.explore-card span {
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 14px;
-  font-weight: 700;
-}
 .project-preview {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -396,26 +332,6 @@ button:focus-visible {
   padding: clamp(30px, 4vw, 58px);
   min-height: 345px;
 }
-.author-pane {
-  background: #e4eee8;
-  display: flex;
-  align-items: center;
-  gap: 30px;
-}
-.portrait {
-  width: 130px;
-  flex: none;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  background: #fbf8f0;
-  border: 8px solid #fffaf2;
-  color: #71827b;
-  font-weight: 700;
-  font-size: 14px;
-}
 .project-preview h3 {
   font-size: 20px;
   margin: 10px 0 4px;
@@ -424,17 +340,6 @@ button:focus-visible {
   color: #52666b;
   margin: 0;
   max-width: 420px;
-}
-.project-pane {
-  background: #f7e8da;
-  position: relative;
-}
-.book-mark {
-  position: absolute;
-  left: 35px;
-  top: 35px;
-  color: #bb836c;
-  font-size: 42px;
 }
 footer.footer {
   margin-top: var(--space-xl);
@@ -1288,8 +1193,6 @@ main {
 .content-list {
   gap: clamp(0.85rem, 1.3vw, 1.25rem);
 }
-.feature-card,
-.explore-card,
 .group-card,
 .skill-card,
 .content-list article,
@@ -1299,15 +1202,11 @@ main {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
-.feature-card,
-.explore-card,
 .group-card,
 .skill-card,
 .content-list article {
   padding: clamp(1.1rem, 0.9rem + 1vw, 1.55rem);
 }
-.feature-card,
-.explore-card,
 .group-card,
 .skill-card,
 .content-list article {
@@ -1317,8 +1216,6 @@ main {
     border-color 0.2s var(--ease-standard),
     background-color 0.2s var(--ease-standard);
 }
-.feature-card:hover,
-.explore-card:hover,
 .group-card:hover,
 .skill-card:hover,
 .content-list article:hover {
@@ -1331,7 +1228,6 @@ main {
   height: 3.5rem;
   margin-block-end: var(--space-sm);
 }
-.feature-card h2,
 .group-card h2 {
   font-size: clamp(1.2rem, 1.08rem + 0.55vw, 1.45rem);
   line-height: 1.3;
@@ -1369,10 +1265,6 @@ main {
 .letter-page h2 {
   font-size: clamp(1.75rem, 1.35rem + 1.5vw, 2.65rem);
   text-wrap: balance;
-}
-.explore-card {
-  display: flex;
-  flex-direction: column;
 }
 .project-preview {
   margin-block-end: var(--space-2xl);
@@ -1489,8 +1381,7 @@ main {
 .outline-button,
 .login-link,
 .card-link,
-.drilldown-group-trigger,
-.hierarchy-back {
+.drilldown-group-trigger {
   transition:
     transform 160ms ease-out,
     box-shadow 160ms ease-out,
@@ -1500,8 +1391,7 @@ main {
 @media (hover: hover) {
   .button:hover,
   .outline-button:hover,
-  .login-link:hover,
-  .hierarchy-back:hover {
+  .login-link:hover {
     transform: translateY(-1px);
     box-shadow: 0 7px 16px rgb(25 53 69 / 0.14);
   }
@@ -1517,15 +1407,13 @@ main {
 .button:active,
 .outline-button:active,
 .login-link:active,
-.drilldown-group-trigger:active,
-.hierarchy-back:active {
+.drilldown-group-trigger:active {
   transform: scale(0.98);
 }
 .button:focus-visible,
 .outline-button:focus-visible,
 .card-link:focus-visible,
-.drilldown-group-trigger:focus-visible,
-.hierarchy-back:focus-visible {
+.drilldown-group-trigger:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--teal), white 35%);
   outline-offset: 3px;
 }
@@ -1534,8 +1422,7 @@ main {
   .outline-button,
   .login-link,
   .card-link,
-  .drilldown-group-trigger,
-  .hierarchy-back {
+.drilldown-group-trigger {
     transition: none;
   }
 }

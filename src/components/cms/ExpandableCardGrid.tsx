@@ -1,17 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, FolderOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import { local, type SiteItem } from "@/lib/cms-shared";
 import { AddItemCard, InlineItemEditor } from "./InlineItemEditor";
-import { CardMedia } from "./CardMedia";
 import { useCmsEditMode } from "./CmsAdminProvider";
-import { CardContentRenderer } from "./CardContentRenderer";
-import {
-  hasStoredContentBlocks,
-  normalizeSiteItemForRendering,
-} from "./card-content";
+import { CmsCard } from "./CmsCard";
 
 const copy = {
   he: {
@@ -30,7 +25,7 @@ const copy = {
 const itemColumns = (item: SiteItem | undefined, fallback: number) =>
   Math.min(4, Math.max(1, Number(item?.settings?.childColumns) || fallback));
 
-function CmsCard({
+function DrilldownCard({
   item,
   locale,
   childItems,
@@ -41,66 +36,7 @@ function CmsCard({
   childItems: SiteItem[];
   onOpen: (item: SiteItem) => void;
 }) {
-  const isGroup = childItems.length > 0 || item.click_behavior === "children";
-  const title = local(item, "title", locale);
-  const content = normalizeSiteItemForRendering(item);
-  const usesOrderedContent = hasStoredContentBlocks(item);
-  const childCount = content.cardStyle.childCount;
-  const groupAction = childCount.visible ? (
-    <button
-      type="button"
-      className={`drilldown-group-content-trigger interactive-button child-count-position-${childCount.position} child-count-${childCount.border ? "bordered" : "clean"} child-count-${childCount.variant}`}
-      onClick={(event) => {
-        event.stopPropagation();
-        onOpen(item);
-      }}
-      aria-label={`${title}, ${childItems.length} ${copy[locale].items}`}
-    >
-      <FolderOpen size={18} />
-      <span>{childItems.length} {copy[locale].items}</span>
-      {locale === "he" ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-    </button>
-  ) : null;
-  return (
-    <article
-      className={`cms-editable-card drilldown-card interactive-card ${item.variant || "default"} ${isGroup ? "drilldown-group" : ""}`}
-    >
-      <InlineItemEditor locale={locale} item={item} childItems={childItems} />
-      {isGroup && !usesOrderedContent && (
-        <CardMedia item={item} locale={locale} position="top" />
-      )}
-      {isGroup ? (
-        usesOrderedContent ? (
-          <>
-            <CardContentRenderer {...content} locale={locale} />
-            {groupAction}
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              className="drilldown-group-trigger interactive-button"
-              onClick={(event) => { event.stopPropagation(); onOpen(item); }}
-              aria-label={`${title}, ${childItems.length} ${copy[locale].items}`}
-            >
-              <span>
-                <h2>{title}</h2>
-                {local(item, "description", locale) && <p>{local(item, "description", locale)}</p>}
-              </span>
-            </button>
-            {groupAction}
-          </>
-        )
-      ) : (
-        <>
-          <CardContentRenderer {...content} locale={locale} />
-        </>
-      )}
-      {isGroup && !usesOrderedContent && (
-        <CardMedia item={item} locale={locale} position="bottom" />
-      )}
-    </article>
-  );
+  return <CmsCard item={item} locale={locale} childCount={childItems.length} onOpenGroup={() => onOpen(item)} className={`drilldown-card ${item.variant || "default"}`} adminControls={<InlineItemEditor locale={locale} item={item} childItems={childItems} />} />;
 }
 
 export function ExpandableCardGrid({
@@ -183,7 +119,7 @@ export function ExpandableCardGrid({
       >
         {currentId && (
           <button
-            className="hierarchy-back"
+            className="text-nav-action hierarchy-back"
             type="button"
             onClick={() => navigate(current?.parent_id || null, "back")}
           >
@@ -197,16 +133,18 @@ export function ExpandableCardGrid({
         )}
         <ol className="hierarchy-breadcrumb">
           <li>
-            <button type="button" onClick={() => navigate(null, "back")}>
-              {rootLabel}
-            </button>
+            {currentId ? (
+              <button className="text-nav-action" type="button" onClick={() => navigate(null, "back")}>
+                {rootLabel}
+              </button>
+            ) : <span aria-current="page">{rootLabel}</span>}
           </li>
           {trail.map((node, index) => (
             <li key={node.id}>
               {index === trail.length - 1 ? (
                 <span aria-current="page">{local(node, "title", locale)}</span>
               ) : (
-                <button type="button" onClick={() => navigate(node.id, "back")}>
+                <button className="text-nav-action" type="button" onClick={() => navigate(node.id, "back")}>
                   {local(node, "title", locale)}
                 </button>
               )}
@@ -226,7 +164,7 @@ export function ExpandableCardGrid({
         }
       >
         {visible.map((item) => (
-          <CmsCard
+          <DrilldownCard
             key={item.id}
             item={item}
             locale={locale}

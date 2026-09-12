@@ -40,20 +40,25 @@ export type ButtonContentBlock = {
   href: string;
 };
 export type ContentBlock = TextContentBlock | MediaContentBlock | ButtonContentBlock;
+export type CardPrimaryAction =
+  | { type: "group" }
+  | { type: "document"; url: string; label?: string }
+  | { type: "link"; href: string }
+  | { type: "none" };
 export type CardStyle = {
   align?: "start" | "center" | "end";
   background?: "default" | "soft" | "accent";
   border?: "default" | "soft" | "none";
   density?: "compact" | "normal" | "relaxed";
+  /** Legacy childCount presentation is read but intentionally not rendered. */
   childCount?: ChildCountStyle;
+  showItemCount?: boolean;
 };
 export type ChildCountStyle = {
   visible?: boolean;
   position?: "top-start" | "top-end" | "bottom-start" | "bottom-end";
-  border?: boolean;
-  variant?: "subtle" | "emphasized";
 };
-export type ResolvedCardStyle = Omit<Required<CardStyle>, "childCount"> & {
+export type ResolvedCardStyle = Omit<Required<CardStyle>, "childCount" | "showItemCount"> & {
   childCount: Required<ChildCountStyle>;
 };
 
@@ -62,7 +67,7 @@ export const DEFAULT_CARD_STYLE: ResolvedCardStyle = {
   background: "default",
   border: "soft",
   density: "normal",
-  childCount: { visible: true, position: "bottom-start", border: false, variant: "subtle" },
+  childCount: { visible: true, position: "bottom-end" },
 };
 
 export const DEFAULT_BLOCK_STYLES = {
@@ -101,7 +106,7 @@ const isContentBlock = (value: unknown): value is ContentBlock => {
  */
 export function hasStoredContentBlocks(item?: SiteItem | null): boolean {
   const stored = item?.settings?.contentBlocks;
-  return Array.isArray(stored) && stored.length > 0 && stored.every(isContentBlock);
+  return Array.isArray(stored) && stored.every(isContentBlock);
 }
 
 export function normalizeItemToContentBlocks(item?: SiteItem | null): ContentBlock[] {
@@ -120,29 +125,36 @@ export function normalizeItemToContentBlocks(item?: SiteItem | null): ContentBlo
   return blocks;
 }
 
+/** Resolves exactly one public-card action, in priority order. */
+export function resolveCardPrimaryAction(
+  item: SiteItem,
+  blocks: ContentBlock[],
+  hasChildren: boolean,
+): CardPrimaryAction {
+  if (hasChildren || item.click_behavior === "children") return { type: "group" };
+  const document = blocks.find(
+    (block): block is MediaContentBlock => block.type === "pdf" && Boolean(block.media.url),
+  );
+  if (document) return { type: "document", url: document.media.url, label: document.media.displayName };
+  const link = blocks.find(
+    (block): block is ButtonContentBlock => block.type === "button" && Boolean(block.href),
+  );
+  if (link) return { type: "link", href: link.href };
+  return { type: "none" };
+}
+
 export function resolveCardStyle(value: unknown): ResolvedCardStyle {
   const style = has(value) ? value : {};
-  const childCount = has(style.childCount) ? style.childCount : {};
-  const savedPosition = String(childCount.position);
-  const childPosition = savedPosition === "top" || savedPosition === "start"
-    ? "top-start"
-    : savedPosition === "end"
-      ? "top-end"
-      : savedPosition === "bottom"
-        ? "bottom-start"
-        : ["top-start", "top-end", "bottom-start", "bottom-end"].includes(savedPosition)
-          ? savedPosition as Required<ChildCountStyle>["position"]
-          : DEFAULT_CARD_STYLE.childCount.position;
   return {
     align: ["start", "center", "end"].includes(String(style.align)) ? style.align as ResolvedCardStyle["align"] : DEFAULT_CARD_STYLE.align,
     background: ["default", "soft", "accent"].includes(String(style.background)) ? style.background as ResolvedCardStyle["background"] : DEFAULT_CARD_STYLE.background,
     border: ["default", "soft", "none"].includes(String(style.border)) ? style.border as ResolvedCardStyle["border"] : DEFAULT_CARD_STYLE.border,
     density: ["compact", "normal", "relaxed"].includes(String(style.density)) ? style.density as ResolvedCardStyle["density"] : DEFAULT_CARD_STYLE.density,
     childCount: {
-      visible: typeof childCount.visible === "boolean" ? childCount.visible : DEFAULT_CARD_STYLE.childCount.visible,
-      position: childPosition,
-      border: typeof childCount.border === "boolean" ? childCount.border : DEFAULT_CARD_STYLE.childCount.border,
-      variant: ["subtle", "emphasized"].includes(String(childCount.variant)) ? childCount.variant as Required<ChildCountStyle>["variant"] : DEFAULT_CARD_STYLE.childCount.variant,
+      // Only this boolean is part of the public footer model. Position, border,
+      // variant, and style settings remain stored data but have no presentation role.
+      visible: typeof style.showItemCount === "boolean" ? style.showItemCount : true,
+      position: DEFAULT_CARD_STYLE.childCount.position,
     },
   };
 }

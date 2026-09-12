@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { FileText } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import {
   DEFAULT_BLOCK_STYLES,
@@ -10,11 +7,9 @@ import {
   type ContentBlock,
   type TextBlockStyle,
   resolveCardStyle,
-  resolveDocumentStyle,
   resolveTextBlockStyle,
   resolveTitleStyle,
 } from "./card-content";
-import { MediaViewer } from "./CardMedia";
 
 type Props = {
   title: { he: string; ar: string };
@@ -36,11 +31,6 @@ export function CardContentRenderer({
   locale,
   preview = false,
 }: Props) {
-  const [openMedia, setOpenMedia] = useState<{
-    url: string;
-    title: string;
-    isPdf: boolean;
-  } | null>(null);
   const style = resolveCardStyle(cardStyle);
   const resolvedTitle = resolveTitleStyle(titleStyle, style);
   const titleClasses = classNames(
@@ -50,7 +40,6 @@ export function CardContentRenderer({
     resolvedTitle.bold && "is-bold",
     resolvedTitle.underline && "is-underlined",
   );
-  const fileLabel = locale === "he" ? "צפייה במסמך" : "عرض المستند";
   return (
     <div
       className={classNames(
@@ -70,16 +59,14 @@ export function CardContentRenderer({
         if (block.type === "image") {
           if (!block.media.url) return null;
           const image = {
-            width: block.media.width || DEFAULT_BLOCK_STYLES.image.width,
-            fit: block.media.fit || DEFAULT_BLOCK_STYLES.image.fit,
-            align: block.media.align || DEFAULT_BLOCK_STYLES.image.align,
+            width: block.media.width ?? DEFAULT_BLOCK_STYLES.image.width,
+            fit: block.media.fit ?? DEFAULT_BLOCK_STYLES.image.fit,
+            align: block.media.align ?? DEFAULT_BLOCK_STYLES.image.align,
           };
-          const imageTitle = locale === "he" ? "תמונה" : "صورة";
           const mediaClasses = classNames(
             "card-content__media",
             "card-content__media--" + image.width,
             "card-content__align--" + image.align,
-            !preview && "card-content__media--interactive interactive-button",
           );
           const imageElement = (
             <img
@@ -88,57 +75,15 @@ export function CardContentRenderer({
               alt=""
             />
           );
-          return preview ? (
-            <div key={block.id} className={mediaClasses}>{imageElement}</div>
-          ) : (
-            <button
-              key={block.id}
-              type="button"
-              className={mediaClasses}
-              aria-label={imageTitle}
-              onClick={(event) => {
-                event.stopPropagation();
-                setOpenMedia({ url: block.media.url, title: imageTitle, isPdf: false });
-              }}
-            >
-              {imageElement}
-            </button>
-          );
+          return <div key={block.id} className={mediaClasses}>{imageElement}</div>;
         }
         if (block.type === "pdf") {
-          if (!block.media.url) return null;
-          const pdfAlign = block.media.align || DEFAULT_BLOCK_STYLES.pdf.align;
-          const pdfTitle = block.media.displayName || fileLabel;
-          const pdf = <><FileText size={20} />{pdfTitle}</>;
-          const classes = classNames(
-            "card-content__document",
-            "interactive-button",
-            "card-content__document--" + resolveDocumentStyle(block),
-            "card-content__document--tone-" + (block.media.tone ?? DEFAULT_BLOCK_STYLES.pdf.tone),
-            "card-content__align--" + pdfAlign,
-            block.media.bold && "is-bold",
-          );
-          return preview ? (
-            <div key={block.id} className={classes}>{pdf}</div>
-          ) : (
-            <button
-              key={block.id}
-              type="button"
-              className={classes}
-              onClick={(event) => {
-                event.stopPropagation();
-                setOpenMedia({ url: block.media.url, title: pdfTitle, isPdf: true });
-              }}
-            >
-              {pdf}
-            </button>
-          );
+          // The public document affordance is rendered once by CardFooter.
+          return null;
         }
         if (block.type === "button") {
           if (!block.href && !block[locale]) return null;
-          return preview
-            ? <span key={block.id} className={"card-content__button card-content__align--" + style.align}>{block[locale] || (locale === "he" ? "כפתור" : "زر")}</span>
-            : block.href ? <Link key={block.id} className={"card-content__button button interactive-button card-content__align--" + style.align} href={block.href} onClick={(event) => event.stopPropagation()}>{block[locale]}</Link> : null;
+          return <span key={block.id} className={"card-content__button card-content__align--" + style.align}>{block[locale] || (locale === "he" ? "כפתור" : "زر")}</span>;
         }
         const textBlock = block as import("./card-content").TextContentBlock;
         const text = resolveTextBlockStyle(textBlock, style);
@@ -154,15 +99,6 @@ export function CardContentRenderer({
         if (!textBlock[locale]) return null;
         return <div key={textBlock.id} className={classes}>{textBlock.type === "subheading" ? <h3>{textBlock[locale]}</h3> : textBlock.type === "source" ? <small>{textBlock[locale]}</small> : <p>{textBlock[locale]}</p>}</div>;
       })}
-      {openMedia && (
-        <MediaViewer
-          url={openMedia.url}
-          title={openMedia.title}
-          isPdf={openMedia.isPdf}
-          locale={locale}
-          onClose={() => setOpenMedia(null)}
-        />
-      )}
     </div>
   );
 }

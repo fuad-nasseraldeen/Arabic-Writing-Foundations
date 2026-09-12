@@ -1,6 +1,6 @@
 /* One application-wide shape for every clickable button.
    Pill radii remain reserved for non-interactive badges and status chips. */
-button {
+button:not(.text-nav-action) {
   border-radius: var(--radius-button) !important;
 }
 
