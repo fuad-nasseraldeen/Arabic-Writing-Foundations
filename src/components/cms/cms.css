@@ -60,8 +60,8 @@ html[data-edit-mode="on"] .inline-card-controls {
   position: relative;
   min-width: 0;
   max-width: 100%;
-  height: auto;
-  align-self: start;
+  height: 100%;
+  align-self: stretch;
 }
 .cms-card--actionable { cursor: pointer; }
 html[data-edit-mode="on"] .cms-editable-card {
@@ -268,29 +268,11 @@ html[data-edit-mode="on"] .grid-settings-button {
 .drilldown-grid {
   display: grid;
   grid-template-columns: repeat(var(--drilldown-columns, 3), minmax(0, 1fr));
-  align-items: start;
+  align-items: stretch;
   gap: clamp(12px, 1.4vw, 18px);
 }
 .drilldown-card {
-  display: flex;
-  min-height: 0;
-  flex-direction: column;
-  padding: clamp(18px, 1.5vw, 22px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-}
-.drilldown-card h2 {
-  margin: 0;
-  font-size: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem);
-  line-height: 1.32;
-}
-.drilldown-card p {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: var(--text-sm);
-  line-height: 1.6;
+  min-width: 0;
 }
 .drilldown-empty {
   margin: 0;

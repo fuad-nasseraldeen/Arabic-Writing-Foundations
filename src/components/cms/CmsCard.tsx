@@ -56,7 +56,9 @@ export function CmsCard({
   return <article className={cardClasses}>
     {adminControls && <div className="cms-card__admin-controls" onClick={(event) => event.stopPropagation()}>{adminControls}</div>}
     <div className="cms-card__surface" role={actionable ? "button" : undefined} tabIndex={actionable ? 0 : undefined} aria-label={actionable ? local(item, "title", locale) : undefined} onClick={onClick} onKeyDown={onKeyDown}>
-      <CardContentRenderer {...content} locale={locale} />
+      <div className="cms-card__main">
+        <CardContentRenderer {...content} locale={locale} />
+      </div>
       <CardFooter blocks={content.blocks} locale={locale} childCount={childCount} showItemCount={content.cardStyle.showItemCount} />
     </div>
   </article>;

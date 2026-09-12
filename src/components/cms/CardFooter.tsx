@@ -16,10 +16,13 @@ export function CardFooter({
   const document = blocks.find(
     (block): block is MediaContentBlock => block.type === "pdf" && Boolean(block.media.url),
   );
-  if (!document && !(childCount > 0 && showItemCount)) return null;
   const label = document?.media.displayName || (locale === "he" ? "צפייה במסמך" : "عرض المستند");
   return <footer className="cms-card__footer">
-    {document ? <span className="cms-card__document"><FileText size={17} />{label}</span> : <span />}
-    {childCount > 0 && showItemCount && <span className="cms-card__count">{childCount} {locale === "he" ? "פריטים" : "عناصر"}</span>}
+    <span className="cms-card__footer-slot cms-card__footer-slot--document">
+      {document && <span className="cms-card__document"><FileText size={17} />{label}</span>}
+    </span>
+    <span className="cms-card__footer-slot cms-card__footer-slot--count">
+      {childCount > 0 && showItemCount && <span className="cms-card__count">{childCount} {locale === "he" ? "פריטים" : "عناصر"}</span>}
+    </span>
   </footer>;
 }
