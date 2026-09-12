@@ -1,4 +1,3 @@
-import { WeeklyTipPage } from "@/components/pages/WeeklyTipPage";
-export default function Page() {
-  return <WeeklyTipPage locale="he" />;
-}
+import { redirect } from "next/navigation";
+
+export default function Page() { redirect("/he/weekly-tip"); }

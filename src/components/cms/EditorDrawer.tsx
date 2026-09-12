@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 export function EditorDrawer({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
 
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   useEffect(() => {
-    setMounted(true);
     const originalOverflow = document.body.style.overflow;
     const originalHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";

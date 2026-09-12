@@ -7,3 +7,9 @@ export const themeTokens: Record<string, Record<string, string>> = {
 };
 
 export const themeNames = { original: "Original", white: "White Clean", "soft-blue": "Soft Blue", "soft-lavender": "Soft Lavender", "warm-beige": "Warm Beige" };
+
+export const textScaleTokens = {
+  compact: { xs: "0.75rem", sm: "0.8125rem", base: "0.9375rem", lg: "1.0625rem", xl: "1.25rem", xxl: "1.75rem", display: "clamp(2rem, 4vw, 3rem)" },
+  normal: { xs: "0.8125rem", sm: "0.875rem", base: "1rem", lg: "1.125rem", xl: "1.3125rem", xxl: "1.875rem", display: "clamp(2.25rem, 4.2vw, 3.25rem)" },
+  large: { xs: "0.875rem", sm: "0.9375rem", base: "1.0625rem", lg: "1.1875rem", xl: "1.4375rem", xxl: "2.0625rem", display: "clamp(2.5rem, 4.5vw, 3.5rem)" },
+} as const;

@@ -1,5 +1,5 @@
 import type { Locale } from "@/i18n/config";
-import type { SiteItem } from "@/lib/cms-shared";
+import { resolveInternalHref, type SiteItem } from "@/lib/cms-shared";
 
 export type TextBlockStyle = {
   align?: "start" | "center" | "end";
@@ -27,9 +27,6 @@ export type MediaContentBlock = {
     width?: "small" | "medium" | "large" | "full";
     fit?: "cover" | "contain";
     align?: "start" | "center" | "end";
-    tone?: "none" | "white" | "mist" | "warm" | "soft";
-    documentStyle?: "clean" | "bordered";
-    bold?: boolean;
   };
 };
 export type ButtonContentBlock = {
@@ -50,24 +47,16 @@ export type CardStyle = {
   background?: "default" | "soft" | "accent";
   border?: "default" | "soft" | "none";
   density?: "compact" | "normal" | "relaxed";
-  /** Legacy childCount presentation is read but intentionally not rendered. */
-  childCount?: ChildCountStyle;
   showItemCount?: boolean;
 };
-export type ChildCountStyle = {
-  visible?: boolean;
-  position?: "top-start" | "top-end" | "bottom-start" | "bottom-end";
-};
-export type ResolvedCardStyle = Omit<Required<CardStyle>, "childCount" | "showItemCount"> & {
-  childCount: Required<ChildCountStyle>;
-};
+export type ResolvedCardStyle = Required<CardStyle>;
 
 export const DEFAULT_CARD_STYLE: ResolvedCardStyle = {
   align: "center",
   background: "default",
   border: "soft",
   density: "normal",
-  childCount: { visible: true, position: "bottom-end" },
+  showItemCount: true,
 };
 
 export const DEFAULT_BLOCK_STYLES = {
@@ -75,7 +64,6 @@ export const DEFAULT_BLOCK_STYLES = {
   subheading: { size: "large", spacing: "normal", bold: true },
   source: { size: "small", spacing: "normal" },
   image: { width: "full", fit: "cover", align: "center" },
-  pdf: { tone: "none", align: "center", documentStyle: "clean" },
 } as const;
 
 const id = () => crypto.randomUUID();
@@ -106,7 +94,7 @@ const isContentBlock = (value: unknown): value is ContentBlock => {
  */
 export function hasStoredContentBlocks(item?: SiteItem | null): boolean {
   const stored = item?.settings?.contentBlocks;
-  return Array.isArray(stored) && stored.every(isContentBlock);
+  return Array.isArray(stored) && stored.length > 0 && stored.every(isContentBlock);
 }
 
 export function normalizeItemToContentBlocks(item?: SiteItem | null): ContentBlock[] {
@@ -130,6 +118,7 @@ export function resolveCardPrimaryAction(
   item: SiteItem,
   blocks: ContentBlock[],
   hasChildren: boolean,
+  locale: Locale,
 ): CardPrimaryAction {
   if (hasChildren || item.click_behavior === "children") return { type: "group" };
   const document = blocks.find(
@@ -139,7 +128,7 @@ export function resolveCardPrimaryAction(
   const link = blocks.find(
     (block): block is ButtonContentBlock => block.type === "button" && Boolean(block.href),
   );
-  if (link) return { type: "link", href: link.href };
+  if (link) return { type: "link", href: resolveInternalHref(link.href, locale) };
   return { type: "none" };
 }
 
@@ -150,12 +139,9 @@ export function resolveCardStyle(value: unknown): ResolvedCardStyle {
     background: ["default", "soft", "accent"].includes(String(style.background)) ? style.background as ResolvedCardStyle["background"] : DEFAULT_CARD_STYLE.background,
     border: ["default", "soft", "none"].includes(String(style.border)) ? style.border as ResolvedCardStyle["border"] : DEFAULT_CARD_STYLE.border,
     density: ["compact", "normal", "relaxed"].includes(String(style.density)) ? style.density as ResolvedCardStyle["density"] : DEFAULT_CARD_STYLE.density,
-    childCount: {
-      // Only this boolean is part of the public footer model. Position, border,
-      // variant, and style settings remain stored data but have no presentation role.
-      visible: typeof style.showItemCount === "boolean" ? style.showItemCount : true,
-      position: DEFAULT_CARD_STYLE.childCount.position,
-    },
+    // Legacy child-count position, border, variant, color and style data remains
+    // untouched in settings but is intentionally ignored by the public model.
+    showItemCount: typeof style.showItemCount === "boolean" ? style.showItemCount : true,
   };
 }
 
@@ -190,10 +176,6 @@ export function resolveTitleStyle(style: TextBlockStyle | undefined, cardStyle: 
     bold: style?.bold ?? false,
     underline: style?.underline ?? false,
   } as Required<TextBlockStyle>;
-}
-
-export function resolveDocumentStyle(block: MediaContentBlock) {
-  return block.media.documentStyle ?? DEFAULT_BLOCK_STYLES.pdf.documentStyle;
 }
 
 export const localized = (block: TextContentBlock | ButtonContentBlock, locale: Locale) =>

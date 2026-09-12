@@ -21,7 +21,9 @@ export function useCmsAdmin() {
 
 /** Works across the server-component boundary used by public pages. */
 export function useCmsEditMode() {
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(() =>
+    typeof window !== "undefined" && sessionStorage.getItem("cms-edit-mode") === "on",
+  );
 
   useEffect(() => {
     const sync = () =>
@@ -58,15 +60,9 @@ export function CmsAdminProvider({
   };
 
   useEffect(() => {
-    if (!isAdmin) {
-      setEditing(false);
-      document.documentElement.dataset.editMode = "off";
-      window.dispatchEvent(new Event(editModeEvent));
-      return;
-    }
-    const initial = sessionStorage.getItem("cms-edit-mode") === "on";
-    applyEditMode(initial);
-  }, [isAdmin]);
+    document.documentElement.dataset.editMode = isAdmin && editing ? "on" : "off";
+    window.dispatchEvent(new Event(editModeEvent));
+  }, [isAdmin, editing]);
 
   const toggle = () => {
     const next = !editing;

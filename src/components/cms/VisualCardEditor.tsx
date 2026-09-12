@@ -39,10 +39,8 @@ import {
   type MediaContentBlock,
   type TextBlockStyle,
   type TextContentBlock,
-  normalizeSiteItemForRendering,
 } from "./card-content";
-import { CardContentRenderer } from "./CardContentRenderer";
-import { CardFooter } from "./CardFooter";
+import { CmsCard } from "./CmsCard";
 
 type TextStyle = TextBlockStyle;
 type TextBlock = TextContentBlock;
@@ -73,8 +71,7 @@ const labels: Record<Locale, Record<string, string>> = {
     large: "גדול", heading: "כותרת", tight: "צפוף", loose: "מרווח",
     medium: "בינוני", full: "מלא", fit: "התאמה", cover: "מילוי", contain: "תמונה מלאה",
     bold: "מודגש", underline: "קו תחתון",
-    color: "גוון", white: "לבן", mist: "אפור בהיר", warm: "קרם", soft: "ירוק עדין",
-    cardDesign: "עיצוב הכרטיס", background: "רקע", border: "מסגרת", density: "צפיפות", showChildCount: "הצג מספר פריטים", position: "מיקום", topStart: "למעלה מימין", topEnd: "למעלה משמאל", bottomStart: "למטה מימין", bottomEnd: "למטה משמאל", items: "פריטים", on: "פעיל", off: "כבוי", documentStyle: "סגנון מסמך", clean: "נקי", bordered: "עם מסגרת",
+    cardDesign: "עיצוב הכרטיס", background: "רקע", border: "מסגרת", density: "צפיפות", showChildCount: "הצג מספר פריטים", items: "פריטים", on: "פעיל", off: "כבוי",
     default: "רגיל", accent: "מודגש", softBorder: "עדינה", none: "ללא", compact: "קומפקטי", relaxed: "מרווח",
     moveUp: "הזז למעלה", moveDown: "הזז למטה", duplicate: "שכפל", remove: "מחק",
     cancel: "ביטול", save: "שמור", saving: "שומר...", buttonText: "טקסט הכפתור",
@@ -91,8 +88,7 @@ const labels: Record<Locale, Record<string, string>> = {
     large: "كبير", heading: "عنوان", tight: "ضيق", loose: "واسع",
     medium: "متوسط", full: "كامل", fit: "الملاءمة", cover: "ملء", contain: "الصورة كاملة",
     bold: "عريض", underline: "تحته خط",
-    color: "اللون", white: "أبيض", mist: "رمادي فاتح", warm: "كريمي", soft: "أخضر هادئ",
-    cardDesign: "تصميم البطاقة", background: "الخلفية", border: "الإطار", density: "الكثافة", showChildCount: "إظهار عدد العناصر", position: "الموضع", topStart: "أعلى اليمين", topEnd: "أعلى اليسار", bottomStart: "أسفل اليمين", bottomEnd: "أسفل اليسار", items: "عناصر", on: "تشغيل", off: "إيقاف", documentStyle: "نمط المستند", clean: "نظيف", bordered: "مع إطار",
+    cardDesign: "تصميم البطاقة", background: "الخلفية", border: "الإطار", density: "الكثافة", showChildCount: "إظهار عدد العناصر", items: "عناصر", on: "تشغيل", off: "إيقاف",
     default: "عادي", accent: "بارز", softBorder: "ناعم", none: "بدون", compact: "مضغوط", relaxed: "مريح",
     moveUp: "نقل لأعلى", moveDown: "نقل لأسفل", duplicate: "نسخ", remove: "حذف",
     cancel: "إلغاء", save: "حفظ", saving: "جارٍ الحفظ...", buttonText: "نص الزر",
@@ -127,12 +123,12 @@ export function VisualCardEditor({ item, sectionId, parentId, isGroup = false, l
   const [saving, setSaving] = useState(false);
   const editorToolsRef = useRef<HTMLDivElement>(null);
   const l = labels[language];
-  const previewContent = normalizeSiteItemForRendering({
+  const previewItem = {
     ...(item as NonNullable<typeof item>),
     title_he: title.he,
     title_ar: title.ar,
     settings: { ...(item?.settings || {}), titleStyle, cardStyle, contentBlocks: blocks },
-  });
+  };
   useEffect(() => {
     if (!addOpen && !cardStyleOpen) return;
     const dismiss = (event: PointerEvent) => {
@@ -216,10 +212,7 @@ export function VisualCardEditor({ item, sectionId, parentId, isGroup = false, l
           <div className="visual-language"><button type="button" className={language === "he" ? "active" : ""} onClick={() => setLanguage("he")}>עברית</button><button type="button" className={language === "ar" ? "active" : ""} onClick={() => setLanguage("ar")}>العربية</button></div>
           <div className="visual-preview-actions"><div className="visual-card-mode"><button type="button" className={kind === "card" ? "active" : ""} onClick={() => setKind("card")}>{l.single}</button><button type="button" className={kind === "group" ? "active" : ""} onClick={() => setKind("group")}>{l.group}</button></div></div>
         </div>
-        <div className="visual-preview-card-shell">
-          <CardContentRenderer {...previewContent} locale={language} preview />
-          <CardFooter blocks={previewContent.blocks} locale={language} childCount={kind === "group" ? 2 : 0} showItemCount={previewContent.cardStyle.childCount.visible} />
-        </div>
+        <CmsCard item={previewItem} locale={language} childCount={kind === "group" ? 2 : 0} className="visual-preview-card-shell" preview />
       </section>
     </div>
     <footer className="visual-editor-footer"><button type="button" className="outline-button compact-button" onClick={onClose}>{l.cancel}</button><button type="button" className="button compact-button" disabled={saving} onClick={save}>{saving && <LoaderCircle className="spin" size={15} />}{saving ? l.saving : l.save}</button></footer>
@@ -228,7 +221,7 @@ export function VisualCardEditor({ item, sectionId, parentId, isGroup = false, l
 
 function CardStylePanel({ l, style, onChange }: { l: Record<string, string>; style: CardStyle; onChange: (style: CardStyle) => void }) {
   const resolved = resolveCardStyle(style);
-  return <div className="card-style-panel"><Segment l={l} label={l.align} value={resolved.align} choices={["start", "center", "end"]} onChange={(align) => onChange({ ...style, align: align as CardStyle["align"] })} /><Segment l={l} label={l.background} value={resolved.background} choices={["default", "soft", "accent"]} onChange={(background) => onChange({ ...style, background: background as CardStyle["background"] })} /><Segment l={l} label={l.border} value={resolved.border} choices={["default", "soft", "none"]} onChange={(border) => onChange({ ...style, border: border as CardStyle["border"] })} /><Segment l={l} label={l.density} value={resolved.density} choices={["compact", "normal", "relaxed"]} onChange={(density) => onChange({ ...style, density: density as CardStyle["density"] })} /><Toggle l={l} label={l.showChildCount} pressed={resolved.childCount.visible} onChange={(showItemCount) => onChange({ ...style, showItemCount })} /></div>;
+  return <div className="card-style-panel"><Segment l={l} label={l.align} value={resolved.align} choices={["start", "center", "end"]} onChange={(align) => onChange({ ...style, align: align as CardStyle["align"] })} /><Segment l={l} label={l.background} value={resolved.background} choices={["default", "soft", "accent"]} onChange={(background) => onChange({ ...style, background: background as CardStyle["background"] })} /><Segment l={l} label={l.border} value={resolved.border} choices={["default", "soft", "none"]} onChange={(border) => onChange({ ...style, border: border as CardStyle["border"] })} /><Segment l={l} label={l.density} value={resolved.density} choices={["compact", "normal", "relaxed"]} onChange={(density) => onChange({ ...style, density: density as CardStyle["density"] })} /><Toggle l={l} label={l.showChildCount} pressed={resolved.showItemCount} onChange={(showItemCount) => onChange({ ...style, showItemCount })} /></div>;
 }
 
 function Toggle({ l, label, pressed, onChange }: { l: Record<string, string>; label: string; pressed: boolean; onChange: (value: boolean) => void }) {
@@ -282,7 +275,7 @@ function MediaEditor({ block, l, picker, onMedia, onUpdate }: { block: MediaBloc
   const updateMedia = (patch: Partial<MediaBlock["media"]>) => onUpdate({ ...block, media: { ...block.media, ...patch } });
   const image = block.type === "image";
   return <div className="block-media-editor"><InlineMediaUpload ref={picker} compact locale={l.edit === "עריכת כרטיס" ? "he" : "ar"} initial={block.type === "image" ? { imageUrl: block.media.url, fileName: block.media.name, mimeType: block.media.mime } : { fileUrl: block.media.url, fileName: block.media.name, mimeType: block.media.mime }} includeFields={false} onChange={onMedia} />
-    {!block.media.url ? <button type="button" className="media-picker" onClick={() => picker.current?.open()}>{image ? <ImageIcon size={22} /> : <FileText size={22} />}<span>{image ? l.chooseImage : l.choosePdf}</span></button> : image ? <><img className={"visual-editor-media-thumb card-content__align--" + (block.media.align ?? DEFAULT_BLOCK_STYLES.image.align)} src={block.media.url} alt="" /><div className="media-settings"><Segment l={l} label={l.width} value={block.media.width ?? DEFAULT_BLOCK_STYLES.image.width} choices={["small", "medium", "large", "full"]} onChange={(width) => updateMedia({ width: width as MediaBlock["media"]["width"] })} /><Segment l={l} label={l.fit} value={block.media.fit ?? DEFAULT_BLOCK_STYLES.image.fit} choices={["cover", "contain"]} onChange={(fit) => updateMedia({ fit: fit as MediaBlock["media"]["fit"] })} /><Segment l={l} label={l.align} value={block.media.align ?? DEFAULT_BLOCK_STYLES.image.align} choices={["start", "center", "end"]} onChange={(align) => updateMedia({ align: align as MediaBlock["media"]["align"] })} /></div></> : <><div className={"pdf-tile card-content__document card-content__document--" + (block.media.documentStyle ?? DEFAULT_BLOCK_STYLES.pdf.documentStyle) + " card-content__document--tone-" + (block.media.tone ?? DEFAULT_BLOCK_STYLES.pdf.tone) + " card-content__align--" + (block.media.align ?? DEFAULT_BLOCK_STYLES.pdf.align) + (block.media.bold ? " is-bold" : "")}><FileText size={24} /><span>{block.media.displayName || l.viewDocument}</span></div><label className="media-display-name">{l.displayName}<input value={block.media.displayName || ""} onChange={(event) => updateMedia({ displayName: event.target.value })} /></label><div className="media-settings"><Segment l={l} label={l.documentStyle} value={block.media.documentStyle ?? DEFAULT_BLOCK_STYLES.pdf.documentStyle} choices={["clean", "bordered"]} onChange={(documentStyle) => updateMedia({ documentStyle: documentStyle as MediaBlock["media"]["documentStyle"] })} /><Segment l={l} label={l.color} value={block.media.tone ?? DEFAULT_BLOCK_STYLES.pdf.tone} choices={["none", "white", "mist", "warm", "soft"]} onChange={(tone) => updateMedia({ tone: tone as MediaBlock["media"]["tone"] })} /><Segment l={l} label={l.align} value={block.media.align ?? DEFAULT_BLOCK_STYLES.pdf.align} choices={["start", "center", "end"]} onChange={(align) => updateMedia({ align: align as MediaBlock["media"]["align"] })} /><div className="format-buttons"><button type="button" className={block.media.bold ? "active" : ""} title={l.bold} aria-label={l.bold} onClick={() => updateMedia({ bold: !block.media.bold })}><Bold size={15} /></button></div></div></>}
+    {!block.media.url ? <button type="button" className="media-picker" onClick={() => picker.current?.open()}>{image ? <ImageIcon size={22} /> : <FileText size={22} />}<span>{image ? l.chooseImage : l.choosePdf}</span></button> : image ? <><img className={"visual-editor-media-thumb card-content__align--" + (block.media.align ?? DEFAULT_BLOCK_STYLES.image.align)} src={block.media.url} alt="" /><div className="media-settings"><Segment l={l} label={l.width} value={block.media.width ?? DEFAULT_BLOCK_STYLES.image.width} choices={["small", "medium", "large", "full"]} onChange={(width) => updateMedia({ width: width as MediaBlock["media"]["width"] })} /><Segment l={l} label={l.fit} value={block.media.fit ?? DEFAULT_BLOCK_STYLES.image.fit} choices={["cover", "contain"]} onChange={(fit) => updateMedia({ fit: fit as MediaBlock["media"]["fit"] })} /><Segment l={l} label={l.align} value={block.media.align ?? DEFAULT_BLOCK_STYLES.image.align} choices={["start", "center", "end"]} onChange={(align) => updateMedia({ align: align as MediaBlock["media"]["align"] })} /></div></> : <><div className="pdf-tile"><FileText size={24} /><span>{block.media.displayName || l.viewDocument}</span></div><label className="media-display-name">{l.displayName}<input value={block.media.displayName || ""} onChange={(event) => updateMedia({ displayName: event.target.value })} /></label></>}
   </div>;
 }
 

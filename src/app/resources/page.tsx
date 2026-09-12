@@ -1,1 +1,3 @@
-import { ContentPage } from "@/components/pages/ContentPage"; export default function Page(){return <ContentPage eyebrow="ידע מקצועי" title="חומרי העשרה" description="אזור מרוכז למאמרים, קישורים וכלים מקצועיים. מקורות יתווספו רק לאחר בחירה ובדיקה מקצועית." items={["קריאה מקצועית","כלי הערכה","הדרכות לצוותים"]}/>}
+import { redirect } from "next/navigation";
+
+export default function Page() { redirect("/he/resources"); }

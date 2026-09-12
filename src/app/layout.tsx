@@ -7,6 +7,8 @@ import {
 import "./globals.css";
 import "./interactions.css";
 import "./button-shape.css";
+import { ThemeTokens } from "@/components/cms/ThemeTokens";
+import { getDesignSettings } from "@/lib/cms";
 const heebo = Heebo({
   subsets: ["hebrew"],
   variable: "--font-heebo",
@@ -27,14 +29,16 @@ export const metadata: Metadata = {
   description:
     "מדריך דיגיטלי מקצועי לקידום מיומנויות קדם־כתיבה ורכישת כתיבת אותיות בערבית בקרב ילדים בגילאי 4–7.",
 };
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const design = await getDesignSettings();
   return (
     <html dir="rtl" data-scroll-behavior="smooth">
       <body
         className={`${heebo.variable} ${notoArabic.variable} ${cairo.variable}`}
       >
+        <ThemeTokens settings={design} />
         {children}
       </body>
     </html>

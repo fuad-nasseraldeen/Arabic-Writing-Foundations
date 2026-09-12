@@ -17,7 +17,6 @@ type Props = {
   cardStyle?: CardStyle;
   titleStyle?: TextBlockStyle;
   locale: Locale;
-  preview?: boolean;
 };
 
 const classNames = (...values: Array<string | false | undefined>) =>
@@ -29,7 +28,6 @@ export function CardContentRenderer({
   cardStyle,
   titleStyle = {},
   locale,
-  preview = false,
 }: Props) {
   const style = resolveCardStyle(cardStyle);
   const resolvedTitle = resolveTitleStyle(titleStyle, style);
@@ -37,6 +35,7 @@ export function CardContentRenderer({
     "card-content__title",
     "card-content__align--" + resolvedTitle.align,
     "card-content__text--" + resolvedTitle.size,
+    "card-content__space--" + resolvedTitle.spacing,
     resolvedTitle.bold && "is-bold",
     resolvedTitle.underline && "is-underlined",
   );
@@ -48,7 +47,6 @@ export function CardContentRenderer({
         "card-content--background-" + style.background,
         "card-content--border-" + style.border,
         "card-content--density-" + style.density,
-        preview && "card-content--preview-shell",
       )}
       dir="rtl"
     >

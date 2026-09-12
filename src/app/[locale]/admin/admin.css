@@ -108,6 +108,14 @@
 .muted-note {
   color: var(--muted);
 }
+.login-error {
+  margin: 18px 0;
+  padding: 10px 12px;
+  border-inline-start: 3px solid #9d4545;
+  background: #fff1ef;
+  color: #78362f !important;
+  font-weight: 600;
+}
 .google-button {
   width: 100%;
   border: 1px solid var(--border);

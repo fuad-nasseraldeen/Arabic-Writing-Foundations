@@ -118,7 +118,7 @@ export function Header({
           <div className="language-switch">
             <button
               type="button"
-              className={locale === "he" ? "active" : ""}
+              className={`nav-action-control ${locale === "he" ? "active" : ""}`}
               onClick={() => switchTo("he")}
             >
               עברית
@@ -126,7 +126,7 @@ export function Header({
             <span>|</span>
             <button
               type="button"
-              className={locale === "ar" ? "active" : ""}
+              className={`nav-action-control ${locale === "ar" ? "active" : ""}`}
               onClick={() => switchTo("ar")}
             >
               العربية
@@ -136,7 +136,7 @@ export function Header({
             <div className="user-menu">
               <button
                 type="button"
-                className="user-control"
+                className="user-control nav-action-control"
                 onClick={() => setDrop(!drop)}
                 aria-expanded={drop}
               >
@@ -162,14 +162,14 @@ export function Header({
               )}
             </div>
           ) : (
-            <Link className="login-link" href={`/${locale}/login`}>
+            <Link className="login-link nav-action-control" href={`/${locale}/login`}>
               {d.auth.login}
             </Link>
           )}
           <button
             type="button"
-            className="icon-button menu"
-            onClick={() => setOpen(!open)}
+            className="icon-button menu nav-action-control"
+            onClick={() => setOpen((current) => !current)}
             aria-expanded={open}
             aria-controls="mobile-navigation"
             aria-label={

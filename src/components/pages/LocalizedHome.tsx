@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import { t } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
 import { getPageCms, local, type Section } from "@/lib/cms";
+import { resolveInternalHref } from "@/lib/cms-shared";
 import { InlineSectionEditor } from "@/components/cms/InlineSectionEditor";
 import {
   AddItemCard,
@@ -57,7 +58,7 @@ export async function LocalizedHome({
             <p>{heroSubtitle}</p>
             <Link
               className="button"
-              href={String(hero?.settings.cta_href || "#guide")}
+              href={resolveInternalHref(String(hero?.settings.cta_href || "#guide"), locale)}
             >
               {String(
                 hero?.settings[`cta_label_${locale}`] || dictionary.home.start,

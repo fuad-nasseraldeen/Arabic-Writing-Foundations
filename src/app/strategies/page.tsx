@@ -1,1 +1,3 @@
-import { ContentPage } from "@/components/pages/ContentPage"; export default function Page(){return <ContentPage eyebrow="התערבות קלינית" title="אסטרטגיות ופעילויות" description="מקום לארגון רעיונות להתערבות מדורגת, בהתאמה לדרישת הביצוע ולמטרת הילד." items={["פעילות רב־חושית","תרגול תנועה גדולה","עבודה על קו ונקודה","מעבר לעבודה בדף"]}/>}
+import { redirect } from "next/navigation";
+
+export default function Page() { redirect("/he/strategies"); }

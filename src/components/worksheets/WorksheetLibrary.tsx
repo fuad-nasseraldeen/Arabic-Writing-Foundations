@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
@@ -77,9 +77,8 @@ function Viewer({
   data: WorksheetLibraryData;
   onClose: () => void;
 }) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   useEffect(() => {
-    setMounted(true);
     const escape = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };

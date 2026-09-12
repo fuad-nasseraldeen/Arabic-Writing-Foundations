@@ -185,11 +185,15 @@ html[data-edit-mode="on"] .grid-settings-button {
   margin-top: var(--space-md);
 }
 .hierarchy-nav {
-  display: flex;
+  display: grid;
   min-width: 0;
-  align-items: center;
-  gap: var(--space-sm);
+  justify-items: start;
+  gap: 8px;
   margin-bottom: var(--space-md);
+}
+.hierarchy-shortcut {
+  display: flex;
+  align-items: center;
 }
 .text-nav-action {
   display: inline-flex;
@@ -407,7 +411,6 @@ html[data-edit-mode="on"] .grid-settings-button {
     grid-template-columns: 1fr;
   }
   .hierarchy-nav {
-    display: grid;
     gap: 8px;
   }
   .hierarchy-breadcrumb {

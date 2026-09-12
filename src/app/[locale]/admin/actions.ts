@@ -415,15 +415,27 @@ export async function saveTheme(locale: string, formData: FormData) {
   const user = await requireAdmin(locale);
   const supabase = await createClient();
   const theme_key = value(formData, "theme_key");
+  const textScale = value(formData, "text_scale") || "normal";
   if (
     !["original", "white", "soft-blue", "soft-lavender", "warm-beige"].includes(
       theme_key,
     )
   )
     throw new Error("Invalid theme preset.");
+  if (!['compact', 'normal', 'large'].includes(textScale))
+    throw new Error("Invalid text scale.");
+  const { data: current, error: readError } = await supabase
+    .from("theme_settings")
+    .select("tokens")
+    .eq("is_active", true)
+    .maybeSingle();
+  if (readError) throw new Error(readError.message);
+  const tokens = current?.tokens && typeof current.tokens === "object" && !Array.isArray(current.tokens)
+    ? current.tokens as Record<string, unknown>
+    : {};
   const { error } = await supabase
     .from("theme_settings")
-    .update({ name: theme_key, theme_key, updated_by: user.id })
+    .update({ name: theme_key, theme_key, tokens: { ...tokens, textScale }, updated_by: user.id })
     .eq("is_active", true);
   if (error) throw new Error(error.message);
   revalidateTag("theme", "max");
@@ -693,10 +705,25 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
   const { data: before } = id
     ? await supabase.from("site_items").select("*").eq("id", id).single()
     : { data: null };
+  const itemType = value(formData, "item_type");
+  if (!['feature_card', 'group'].includes(itemType))
+    throw new Error("Invalid card type.");
+  const validBlock = (block: unknown) => {
+    if (!block || typeof block !== "object" || Array.isArray(block)) return false;
+    const record = block as Record<string, unknown>;
+    if (typeof record.id !== "string") return false;
+    if (["paragraph", "subheading", "source"].includes(String(record.type)))
+      return typeof record.he === "string" && typeof record.ar === "string";
+    if (record.type === "button")
+      return typeof record.he === "string" && typeof record.ar === "string" && typeof record.href === "string";
+    const media = record.media;
+    return (record.type === "image" || record.type === "pdf") && Boolean(media) && typeof media === "object" && !Array.isArray(media) && typeof (media as Record<string, unknown>).url === "string";
+  };
+  if (!blocks.every(validBlock)) throw new Error("Invalid content block.");
   const data = {
     section_id,
     parent_id: value(formData, "parent_id") || before?.parent_id || null,
-    item_type: before?.item_type || "feature_card",
+    item_type: itemType,
     click_behavior:
       value(formData, "click_behavior") === "children" ? "children" : "content",
     title_he: value(formData, "title_he"),
@@ -724,15 +751,16 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
     )
       ? value(formData, "media_position")
       : before?.media_position || "top",
-    is_visible: formData.get("is_visible") === "on",
+    is_visible: formData.has("is_visible")
+      ? formData.get("is_visible") === "on"
+      : before?.is_visible ?? true,
     settings: {
       ...(before?.settings || {}),
       contentBlocks: blocks,
-      titleStyle: { ...(before?.settings?.titleStyle || {}), ...titleStyle },
-      cardStyle: {
-        ...(before?.settings?.cardStyle || {}),
-        ...cardStyle,
-      },
+      // These subtrees are fully editor-owned; keeping removed keys would make
+      // old presentation options survive a user reset.
+      titleStyle,
+      cardStyle,
       childColumns: [1, 2, 3, 4].includes(
         Number(value(formData, "child_columns")),
       )

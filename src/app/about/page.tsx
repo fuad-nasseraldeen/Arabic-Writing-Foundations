@@ -1,1 +1,3 @@
-import { ContentPage } from "@/components/pages/ContentPage"; export default function Page(){return <ContentPage eyebrow="אודותיי" title="חיסאן ג׳בר-נאצר אלדין" description="מרפאה בעיסוק וסטודנטית לתואר שני בריפוי בעיסוק באוניברסיטת תל־אביב. כאן יתווסף בהמשך סיפור מקצועי ותמונה באישור בעלת הפרויקט." items={["הרקע המקצועי","החזון למדריך","יצירת קשר"]}/>}
+import { redirect } from "next/navigation";
+
+export default function Page() { redirect("/he/about"); }

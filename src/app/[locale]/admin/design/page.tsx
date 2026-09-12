@@ -16,7 +16,7 @@ export default async function Page({
       <p className="muted-note">
         {locale === "he" ? "ערכת צבעים" : "مجموعة الألوان"}
       </p>
-      <ThemeSelector locale={locale} activeTheme={settings.themeKey} />
+      <ThemeSelector locale={locale} activeTheme={settings.themeKey} activeTextScale={settings.textScale} />
     </>
   );
 }

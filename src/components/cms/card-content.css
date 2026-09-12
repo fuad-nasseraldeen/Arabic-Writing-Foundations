@@ -6,22 +6,6 @@
   color: var(--ink);
 }
 
-/* The editor alone needs a preview shell. Public shells live in .cms-card below. */
-.card-content--preview-shell {
-  padding: 18px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card, 18px);
-  background: var(--surface);
-}
-.card-content--preview-shell.card-content--background-soft,
-.cms-editable-card:has(.card-content--background-soft) { background: color-mix(in srgb, var(--sage), var(--surface) 72%); }
-.card-content--preview-shell.card-content--background-accent,
-.cms-editable-card:has(.card-content--background-accent) { background: color-mix(in srgb, var(--peach), var(--surface) 62%); }
-.card-content--preview-shell.card-content--border-soft,
-.cms-editable-card:has(.card-content--border-soft) { border-color: color-mix(in srgb, var(--teal), var(--border) 72%); }
-.card-content--preview-shell.card-content--border-none,
-.cms-editable-card:has(.card-content--border-none) { border-color: transparent; }
-
 .cms-card {
   display: grid;
   gap: var(--card-content-space, 12px);
@@ -32,10 +16,12 @@
   box-shadow: var(--shadow-sm);
   direction: rtl;
 }
-.cms-card:has(.card-content--background-soft) { background: color-mix(in srgb, var(--sage), var(--surface) 72%); }
-.cms-card:has(.card-content--background-accent) { background: color-mix(in srgb, var(--peach), var(--surface) 62%); }
-.cms-card:has(.card-content--border-soft) { border-color: color-mix(in srgb, var(--teal), var(--border) 72%); }
-.cms-card:has(.card-content--border-none) { border-color: transparent; }
+.cms-card--background-soft { background: color-mix(in srgb, var(--sage), var(--surface) 72%); }
+.cms-card--background-accent { background: color-mix(in srgb, var(--peach), var(--surface) 62%); }
+.cms-card--border-soft { border-color: color-mix(in srgb, var(--teal), var(--border) 72%); }
+.cms-card--border-none { border-color: transparent; }
+.cms-card--density-compact { --card-content-space: 7px; padding: clamp(14px, 1.2vw, 18px); }
+.cms-card--density-relaxed { --card-content-space: 18px; padding: clamp(22px, 2vw, 28px); }
 .cms-card--actionable { cursor: pointer; }
 .cms-card--actionable:hover { border-color: color-mix(in srgb, var(--teal), var(--border) 68%); box-shadow: var(--shadow-button-hover); transform: translateY(-2px); }
 .cms-card--actionable:active { transform: scale(0.99); }
@@ -107,7 +93,6 @@
 .card-content__button { border-color: var(--teal-dark); background: var(--teal-dark); color: #fff; }
 
 @media (max-width: 680px) {
-  .card-content--preview-shell { padding: 14px; }
   .card-content__media--small { width: clamp(128px, 52%, 190px); }
   .card-content__media--medium { width: min(76%, 330px); }
   .card-content__media--large { width: 100%; }

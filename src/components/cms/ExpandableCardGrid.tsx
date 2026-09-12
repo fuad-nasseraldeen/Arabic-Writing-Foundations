@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import { local, type SiteItem } from "@/lib/cms-shared";
@@ -11,12 +12,14 @@ import { CmsCard } from "./CmsCard";
 const copy = {
   he: {
     back: "חזרה",
+    home: "דף הבית",
     items: "פריטים",
     empty: "אין עדיין פריטים ברמה זו",
     addChild: "הוסף תוכן ל־",
   },
   ar: {
     back: "رجوع",
+    home: "الصفحة الرئيسية",
     items: "عناصر",
     empty: "لا توجد عناصر في هذا المستوى بعد",
     addChild: "إضافة محتوى إلى ",
@@ -117,40 +120,47 @@ export function ExpandableCardGrid({
         className="hierarchy-nav"
         aria-label={locale === "he" ? "מיקום בהיררכיה" : "الموقع في التسلسل"}
       >
+        <div className="hierarchy-shortcut">
+          {currentId && (
+            <button
+              className="text-nav-action hierarchy-back"
+              type="button"
+              onClick={() => navigate(current?.parent_id || null, "back")}
+            >
+              {locale === "he" ? (
+                <ChevronRight size={18} />
+              ) : (
+                <ChevronLeft size={18} />
+              )}
+              <span>{l.back}</span>
+            </button>
+          )}
+          {!currentId && (
+            <Link className="text-nav-action hierarchy-home" href={`/${locale}`}>
+              {l.home}
+            </Link>
+          )}
+        </div>
         {currentId && (
-          <button
-            className="text-nav-action hierarchy-back"
-            type="button"
-            onClick={() => navigate(current?.parent_id || null, "back")}
-          >
-            {locale === "he" ? (
-              <ChevronRight size={18} />
-            ) : (
-              <ChevronLeft size={18} />
-            )}
-            <span>{l.back}</span>
-          </button>
-        )}
-        <ol className="hierarchy-breadcrumb">
-          <li>
-            {currentId ? (
+          <ol className="hierarchy-breadcrumb">
+            <li>
               <button className="text-nav-action" type="button" onClick={() => navigate(null, "back")}>
                 {rootLabel}
               </button>
-            ) : <span aria-current="page">{rootLabel}</span>}
-          </li>
-          {trail.map((node, index) => (
-            <li key={node.id}>
-              {index === trail.length - 1 ? (
-                <span aria-current="page">{local(node, "title", locale)}</span>
-              ) : (
-                <button className="text-nav-action" type="button" onClick={() => navigate(node.id, "back")}>
-                  {local(node, "title", locale)}
-                </button>
-              )}
             </li>
-          ))}
-        </ol>
+            {trail.map((node, index) => (
+              <li key={node.id}>
+                {index === trail.length - 1 ? (
+                  <span aria-current="page">{local(node, "title", locale)}</span>
+                ) : (
+                  <button className="text-nav-action" type="button" onClick={() => navigate(node.id, "back")}>
+                    {local(node, "title", locale)}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ol>
+        )}
       </nav>
       {current && (
         <h2 className="drilldown-title">{local(current, "title", locale)}</h2>
