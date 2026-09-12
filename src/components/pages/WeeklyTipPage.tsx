@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import { getFeaturedWeeklyTip, localWeeklyTip } from "@/lib/weekly-tips";
+import { PageHomeNavigation } from "@/components/navigation/PageHomeNavigation";
 
 const icons = {
   lightbulb: Lightbulb,
@@ -24,6 +25,7 @@ export async function WeeklyTipPage({ locale }: { locale: Locale }) {
   if (!tip)
     return (
       <div className="weekly-tip-page container">
+        <PageHomeNavigation locale={locale} />
         <span className="eyebrow">
           {isHe ? "כלי קטן לשבוע הקרוב" : "أداة صغيرة للأسبوع القادم"}
         </span>
@@ -45,6 +47,7 @@ export async function WeeklyTipPage({ locale }: { locale: Locale }) {
   const Icon = icons[tip.icon_key] || Lightbulb;
   return (
     <div className="weekly-tip-page container">
+      <PageHomeNavigation locale={locale} />
       <span className="eyebrow">
         {isHe ? "כלי קטן לשבוע הקרוב" : "أداة صغيرة للأسبوع القادم"}
       </span>

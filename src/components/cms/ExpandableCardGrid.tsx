@@ -120,8 +120,8 @@ export function ExpandableCardGrid({
         className="hierarchy-nav"
         aria-label={locale === "he" ? "מיקום בהיררכיה" : "الموقع في التسلسل"}
       >
-        <div className="hierarchy-shortcut">
-          {currentId && (
+        {currentId && (
+          <div className="hierarchy-shortcut">
             <button
               className="text-nav-action hierarchy-back"
               type="button"
@@ -134,33 +134,33 @@ export function ExpandableCardGrid({
               )}
               <span>{l.back}</span>
             </button>
-          )}
-          {!currentId && (
+          </div>
+        )}
+        <ol className="hierarchy-breadcrumb">
+          <li>
             <Link className="text-nav-action hierarchy-home" href={`/${locale}`}>
               {l.home}
             </Link>
-          )}
-        </div>
-        {currentId && (
-          <ol className="hierarchy-breadcrumb">
-            <li>
+          </li>
+          <li>
+            {currentId ? (
               <button className="text-nav-action" type="button" onClick={() => navigate(null, "back")}>
                 {rootLabel}
               </button>
+            ) : <span aria-current="page">{rootLabel}</span>}
+          </li>
+          {trail.map((node, index) => (
+            <li key={node.id}>
+              {index === trail.length - 1 ? (
+                <span aria-current="page">{local(node, "title", locale)}</span>
+              ) : (
+                <button className="text-nav-action" type="button" onClick={() => navigate(node.id, "back")}>
+                  {local(node, "title", locale)}
+                </button>
+              )}
             </li>
-            {trail.map((node, index) => (
-              <li key={node.id}>
-                {index === trail.length - 1 ? (
-                  <span aria-current="page">{local(node, "title", locale)}</span>
-                ) : (
-                  <button className="text-nav-action" type="button" onClick={() => navigate(node.id, "back")}>
-                    {local(node, "title", locale)}
-                  </button>
-                )}
-              </li>
-            ))}
-          </ol>
-        )}
+          ))}
+        </ol>
       </nav>
       {current && (
         <h2 className="drilldown-title">{local(current, "title", locale)}</h2>

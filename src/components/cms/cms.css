@@ -246,7 +246,7 @@ html[data-edit-mode="on"] .grid-settings-button {
   text-overflow: ellipsis;
 }
 .hierarchy-breadcrumb li + li::before {
-  content: "/";
+  content: "›";
   margin-inline-end: 7px;
   color: color-mix(in srgb, var(--muted), transparent 45%);
 }
@@ -415,6 +415,13 @@ html[data-edit-mode="on"] .grid-settings-button {
   }
   .hierarchy-breadcrumb {
     width: 100%;
+    max-width: 100%;
+  }
+  .hierarchy-breadcrumb li {
+    max-width: min(45vw, 18ch);
+  }
+  .hierarchy-breadcrumb li:not(:first-child):not(:last-child) {
+    display: none;
   }
   .hierarchy-back {
     width: fit-content;

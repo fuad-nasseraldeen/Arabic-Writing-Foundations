@@ -3,6 +3,7 @@ import { getPageCms, local } from "@/lib/cms";
 import { InlineSectionEditor } from "@/components/cms/InlineSectionEditor";
 import { ExpandableCardGrid } from "@/components/cms/ExpandableCardGrid";
 import { GridSettings } from "@/components/cms/GridSettings";
+import { PageHomeNavigation } from "@/components/navigation/PageHomeNavigation";
 const columns = (settings: Record<string, unknown>) =>
   Math.min(4, Math.max(1, Number(settings.columns) || 3));
 export async function LocalizedContentPage({
@@ -59,19 +60,22 @@ export async function LocalizedContentPage({
           addLabel={addLabels[pageKey] || (isHe ? "הוסף כרטיס" : "إضافة بطاقة")}
         />
       ) : (
-        <div className="content-list">
-          {staticItems.map((item, i) => (
-            <article key={item}>
-              <span>0{i + 1}</span>
-              <h2>{item}</h2>
-              <p>
-                {isHe
-                  ? "המידע המקצועי יתווסף ויעודכן על ידי צוות האתר."
-                  : "ستتم إضافة المعلومات المهنية وتحديثها من قبل فريق الموقع."}
-              </p>
-            </article>
-          ))}
-        </div>
+        <>
+          <PageHomeNavigation locale={locale} />
+          <div className="content-list">
+            {staticItems.map((item, i) => (
+              <article key={item}>
+                <span>0{i + 1}</span>
+                <h2>{item}</h2>
+                <p>
+                  {isHe
+                    ? "המידע המקצועי יתווסף ויעודכן על ידי צוות האתר."
+                    : "ستتم إضافة المعلومات المهنية وتحديثها من قبل فريق الموقع."}
+                </p>
+              </article>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

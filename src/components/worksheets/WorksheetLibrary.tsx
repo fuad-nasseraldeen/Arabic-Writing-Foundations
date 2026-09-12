@@ -25,6 +25,7 @@ import type {
 import { localized } from "@/lib/worksheet-types";
 import { deleteWorksheet, saveWorksheet } from "@/app/[locale]/admin/actions";
 import { EditorDrawer } from "@/components/cms/EditorDrawer";
+import { PageHomeNavigation } from "@/components/navigation/PageHomeNavigation";
 import { WorksheetMediaUpload } from "./WorksheetMediaUpload";
 import { useCmsAdmin, useCmsEditMode } from "@/components/cms/CmsAdminProvider";
 import styles from "./WorksheetLibrary.module.css";
@@ -525,6 +526,7 @@ export function WorksheetLibrary({
   };
   return (
     <div className={`page-shell container ${styles.library}`}>
+      <PageHomeNavigation locale={locale} />
       <span className="eyebrow">
         {text(locale, "ספריית תרגול", "مكتبة التدريب")}
       </span>
