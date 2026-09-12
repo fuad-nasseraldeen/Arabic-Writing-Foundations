@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
+import { createPortal } from "react-dom";
+import confirmStyles from "./DeleteConfirmDialog.module.css";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/i18n/config";
@@ -455,33 +457,42 @@ export function InlineItemEditor({
         </button>
       </div>
       <Toast visible={saved} locale={locale} />
-      {confirm && (
-        <div className="confirm-popover">
-          <p>
-            {locale === "he"
-              ? `למחוק את הכרטיס '${item.title_he || ""}'?`
-              : "حذف البطاقة؟"}
-          </p>
-          <button
-            type="button"
-            className="outline-button"
-            onClick={() => setConfirm(false)}
-          >
-            {locale === "he" ? "ביטול" : "إلغاء"}
-          </button>
-          <form
-            action={async (fd) => {
-              await deleteSiteItem(locale, fd);
-              setConfirm(false);
-            }}
-          >
-            <input type="hidden" name="id" value={item.id} />
-            <button className="danger-button">
-              {locale === "he" ? "מחיקה" : "حذف"}
-            </button>
-          </form>
+      {confirm && createPortal(
+        <div className={confirmStyles.overlay} role="dialog" aria-modal="true">
+          <div className={confirmStyles.dialog}>
+            <p>
+              {childItems?.length
+                ? locale === "he"
+                  ? `למחוק את '${item.title_he || ""}' ואת ${childItems.length} תתי־הכרטיסים שלו? פעולה זו תמחק גם את כל הצאצאים שלהם.`
+                  : `حذف البطاقة وكل البطاقات الفرعية (${childItems.length})؟ سيُحذف جميع الأبناء أيضًا.`
+                : locale === "he"
+                  ? `למחוק את הכרטיס '${item.title_he || ""}'?`
+                  : "حذف البطاقة؟"}
+            </p>
+            <div className={confirmStyles.actions}>
+              <button
+                type="button"
+                className="outline-button"
+                onClick={() => setConfirm(false)}
+              >
+                {locale === "he" ? "ביטול" : "إلغاء"}
+              </button>
+              <form
+                action={async (fd) => {
+                  await deleteSiteItem(locale, fd);
+                  setConfirm(false);
+                }}
+              >
+                <input type="hidden" name="id" value={item.id} />
+                {childItems?.length ? <input type="hidden" name="cascade" value="true" /> : null}
+                <button className="danger-button">
+                  {locale === "he" ? "מחיקה" : "حذف"}
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
-      )}
+      , document.body)}
       {open && (
         <EditorDrawer
           title={locale === "he" ? "עריכת כרטיס" : "تحرير البطاقة"}
@@ -491,6 +502,7 @@ export function InlineItemEditor({
             locale={locale}
             item={item}
             sectionId={item.section_id}
+            isGroup={childItems.length > 0}
             onClose={() => setOpen(false)}
             onSaved={showSaved}
           />

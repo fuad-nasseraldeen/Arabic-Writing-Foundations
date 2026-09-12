@@ -53,7 +53,7 @@ export async function LocalizedContentPage({
         <ExpandableCardGrid
           locale={locale}
           items={cmsItems}
-          columns={columns(section.settings || {})}
+          columns={pageKey === "about" ? 1 : columns(section.settings || {})}
           sectionId={section.id}
           rootLabel={sectionTitle}
           addLabel={addLabels[pageKey] || (isHe ? "הוסף כרטיס" : "إضافة بطاقة")}

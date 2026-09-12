@@ -121,6 +121,7 @@ export const InlineMediaUpload = forwardRef<InlineMediaUploadHandle, {
       <input
         ref={input}
         className="visually-hidden"
+        style={{ display: "none" }}
         type="file"
         accept=".jpg,.jpeg,.png,.webp,.pdf"
         onChange={(event) => {

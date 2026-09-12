@@ -429,34 +429,6 @@ export async function saveTheme(locale: string, formData: FormData) {
   revalidateTag("theme", "max");
   revalidatePath(`/${locale}/admin/design`);
 }
-export async function saveTypography(locale: string, formData: FormData) {
-  const user = await requireAdmin(locale);
-  const supabase = await createClient();
-  const typographyPreset = value(formData, "typography_preset");
-  const textScale = value(formData, "text_scale");
-  if (
-    !["clean", "soft", "modern"].includes(typographyPreset) ||
-    !["compact", "normal", "large"].includes(textScale)
-  ) {
-    throw new Error("Invalid typography preset.");
-  }
-  const { data: current, error: readError } = await supabase
-    .from("theme_settings")
-    .select("tokens")
-    .eq("is_active", true)
-    .single();
-  if (readError) throw new Error(readError.message);
-  const { error } = await supabase
-    .from("theme_settings")
-    .update({
-      tokens: { ...(current?.tokens || {}), typographyPreset, textScale },
-      updated_by: user.id,
-    })
-    .eq("is_active", true);
-  if (error) throw new Error(error.message);
-  revalidateTag("theme", "max");
-  revalidatePath(`/${locale}/admin/design`);
-}
 async function refreshItemPage(locale: string, sectionId: string) {
   const supabase = await createClient();
   const { data } = await supabase
@@ -643,22 +615,40 @@ export async function deleteSiteItem(locale: string, formData: FormData) {
     .eq("id", id)
     .single();
   if (!before) throw new Error("Card not found.");
-  const { count, error: childrenError } = await supabase
+  const { data: activeItems, error: childrenError } = await supabase
     .from("site_items")
-    .select("id", { count: "exact", head: true })
-    .eq("parent_id", id)
+    .select("id,parent_id")
+    .eq("section_id", before.section_id)
     .is("deleted_at", null);
   if (childrenError) throw new Error(childrenError.message);
-  if (count)
+  const descendants: string[] = [];
+  const pending = [id];
+  while (pending.length) {
+    const parentId = pending.pop();
+    const children = (activeItems || []).filter((entry) => entry.parent_id === parentId);
+    for (const child of children) {
+      descendants.push(child.id);
+      pending.push(child.id);
+    }
+  }
+  if (descendants.length && formData.get("cascade") !== "true")
     throw new Error(
-      `This group contains ${count} subgroups. Delete them first.`,
+      `This group contains ${descendants.length} subgroups. Confirm cascade deletion first.`,
     );
+  const ids = [id, ...descendants];
   const { error } = await supabase
     .from("site_items")
     .update({ deleted_at: new Date().toISOString(), updated_by: user.id })
-    .eq("id", id);
+    .in("id", ids);
   if (error) throw new Error(error.message);
-  await audit("site_item", id, "delete", before, null, user.id);
+  await audit(
+    "site_item",
+    id,
+    "delete",
+    before,
+    { deletedIds: ids, cascade: descendants.length > 0 },
+    user.id,
+  );
   await refreshItemPage(locale, before.section_id);
 }
 export async function saveVisualSiteItem(locale: string, formData: FormData) {
@@ -681,8 +671,36 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
     delete titleStyle.align;
   if (!["small", "normal", "large", "heading"].includes(String(titleStyle.size)))
     delete titleStyle.size;
+  if (!['tight', 'normal', 'loose'].includes(String(titleStyle.spacing)))
+    delete titleStyle.spacing;
   if (typeof titleStyle.bold !== "boolean") delete titleStyle.bold;
   if (typeof titleStyle.underline !== "boolean") delete titleStyle.underline;
+  let cardStyle: Record<string, unknown> = {};
+  try {
+    const parsed = JSON.parse(value(formData, "card_style") || "{}");
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed))
+      cardStyle = parsed;
+  } catch {}
+  if (!["start", "center", "end"].includes(String(cardStyle.align)))
+    delete cardStyle.align;
+  if (!["default", "soft", "accent"].includes(String(cardStyle.background)))
+    delete cardStyle.background;
+  if (!["default", "soft", "none"].includes(String(cardStyle.border)))
+    delete cardStyle.border;
+  if (!["compact", "normal", "relaxed"].includes(String(cardStyle.density)))
+    delete cardStyle.density;
+  const childCount =
+    cardStyle.childCount && typeof cardStyle.childCount === "object" && !Array.isArray(cardStyle.childCount)
+      ? (cardStyle.childCount as Record<string, unknown>)
+      : {};
+  if (typeof childCount.visible !== "boolean") delete childCount.visible;
+  if (!["top-start", "top-end", "bottom-start", "bottom-end"].includes(String(childCount.position)))
+    delete childCount.position;
+  if (typeof childCount.border !== "boolean") delete childCount.border;
+  if (!["subtle", "emphasized"].includes(String(childCount.variant)))
+    delete childCount.variant;
+  if (Object.keys(childCount).length) cardStyle.childCount = childCount;
+  else delete cardStyle.childCount;
   const { data: before } = id
     ? await supabase.from("site_items").select("*").eq("id", id).single()
     : { data: null };
@@ -721,7 +739,19 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
     settings: {
       ...(before?.settings || {}),
       contentBlocks: blocks,
-      titleStyle,
+      titleStyle: { ...(before?.settings?.titleStyle || {}), ...titleStyle },
+      cardStyle: {
+        ...(before?.settings?.cardStyle || {}),
+        ...cardStyle,
+        ...(cardStyle.childCount
+          ? {
+              childCount: {
+                ...((before?.settings?.cardStyle as Record<string, unknown> | undefined)?.childCount as Record<string, unknown> || {}),
+                ...(cardStyle.childCount as Record<string, unknown>),
+              },
+            }
+          : {}),
+      },
       childColumns: [1, 2, 3, 4].includes(
         Number(value(formData, "child_columns")),
       )

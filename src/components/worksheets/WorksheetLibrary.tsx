@@ -552,7 +552,7 @@ export function WorksheetLibrary({
         </label>
         <div className={styles.chips}>
           {[
-            ["", text(locale, "הכול", "الكل")],
+            ["", text(locale, "הכל", "الكل")],
             ["easy", difficultyLabels.easy[locale]],
             ["medium", difficultyLabels.medium[locale]],
             ["hard", difficultyLabels.hard[locale]],

@@ -76,7 +76,7 @@ export function CardMedia({
   );
 }
 
-function MediaViewer({
+export function MediaViewer({
   url,
   title,
   isPdf,

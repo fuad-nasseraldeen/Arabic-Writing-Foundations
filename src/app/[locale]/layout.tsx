@@ -8,6 +8,7 @@ import { t } from "@/i18n/dictionaries";
 import "./admin/admin.css";
 import "@/components/cms/cms.css";
 import "@/components/cms/fullscreen-editor.css";
+import "@/components/cms/card-content.css";
 import { ThemeTokens } from "@/components/cms/ThemeTokens";
 import { getDesignSettings } from "@/lib/cms";
 import { CmsAdminProvider } from "@/components/cms/CmsAdminProvider";

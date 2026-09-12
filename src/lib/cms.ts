@@ -66,7 +66,6 @@ export async function getPageCms(pageKey: string, includeDraft = false) {
 }
 export type DesignSettings = {
   themeKey: string;
-  typographyPreset: "clean" | "soft" | "modern";
   textScale: "compact" | "normal" | "large";
 };
 const cachedDesignSettings = unstable_cache(
@@ -78,11 +77,6 @@ const cachedDesignSettings = unstable_cache(
       .eq("is_active", true)
       .maybeSingle();
     const tokens = (data?.tokens || {}) as Record<string, unknown>;
-    const typographyPreset = ["clean", "soft", "modern"].includes(
-      String(tokens.typographyPreset),
-    )
-      ? (String(tokens.typographyPreset) as DesignSettings["typographyPreset"])
-      : "clean";
     const textScale = ["compact", "normal", "large"].includes(
       String(tokens.textScale),
     )
@@ -90,7 +84,6 @@ const cachedDesignSettings = unstable_cache(
       : "normal";
     return {
       themeKey: data?.theme_key || "original",
-      typographyPreset,
       textScale,
     };
   },

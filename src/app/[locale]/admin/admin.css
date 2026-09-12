@@ -1,6 +1,3 @@
-.locale-ar {
-  font-family: var(--font-arabic), Arial, sans-serif;
-}
 .language-switch {
   display: flex;
   align-items: center;
@@ -23,7 +20,7 @@
 .login-link,
 .outline-button {
   border: 1px solid var(--teal);
-  border-radius: 999px;
+  border-radius: var(--radius-button);
   padding: 8px 13px;
   color: var(--teal-dark);
   font-weight: 700;

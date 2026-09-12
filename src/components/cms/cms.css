@@ -47,7 +47,7 @@
   height: 28px;
   place-items: center;
   border: 0;
-  border-radius: 50%;
+  border-radius: var(--radius-button);
   background: transparent;
   color: var(--teal-dark);
   cursor: pointer;
@@ -86,7 +86,6 @@ html[data-edit-mode="on"] .cms-editable-card {
 .button-spinner { animation: cms-spin .8s linear infinite; }
 @keyframes cms-spin { to { transform: rotate(360deg); } }
 
-.ordered-card-content{display:grid;gap:8px;margin-top:8px}.ordered-card-content .button{width:fit-content}.ordered-media{display:block;max-width:100%;border-radius:var(--radius-control)}.ordered-media-small{width:42%;height:96px}.ordered-media-medium{width:72%;height:152px}.ordered-media-large,.ordered-media-full{width:100%;height:220px}.ordered-pdf{display:flex;align-items:center;gap:8px;width:fit-content;color:var(--teal-dark);font-weight:700}
 
 /* Public media never reveals a storage filename. */
 .card-media {
@@ -265,7 +264,7 @@ html[data-edit-mode="on"] .cms-editable-card {
   height: 34px;
   place-items: center;
   border: 1px solid var(--border);
-  border-radius: 50%;
+  border-radius: var(--radius-button);
   background: var(--surface);
   color: var(--teal-dark);
   box-shadow: var(--shadow-sm);
@@ -531,48 +530,6 @@ html[data-edit-mode="on"] .grid-settings-button {
     #f6e3d4 66%
   );
 }
-.design-typography {
-  margin-top: var(--space-xl);
-}
-.typography-selector {
-  display: grid;
-  max-width: 42rem;
-  gap: var(--space-md);
-}
-.typography-selector fieldset {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.typography-selector legend {
-  margin-bottom: 8px;
-  font-weight: 800;
-}
-.typography-options {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.typography-options button {
-  display: inline-flex;
-  min-height: 42px;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
-}
-.typography-options button.selected {
-  border-color: var(--teal);
-  background: color-mix(in srgb, var(--sage), var(--surface) 55%);
-  color: var(--teal-dark);
-}
 @media (max-width: 900px) {
   .drilldown-grid {
     grid-template-columns: repeat(
@@ -630,9 +587,6 @@ html[data-edit-mode="on"] .grid-settings-button {
   }
   .theme-presets {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .typography-options {
-    grid-template-columns: 1fr;
   }
 }
 @media (prefers-reduced-motion: reduce) {

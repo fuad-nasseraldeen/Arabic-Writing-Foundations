@@ -18,6 +18,11 @@ import {
 } from "@/components/cms/InlineItemEditor";
 import { CardButton } from "@/components/cms/CardButton";
 import { CardMedia } from "@/components/cms/CardMedia";
+import { CardContentRenderer } from "@/components/cms/CardContentRenderer";
+import {
+  hasStoredContentBlocks,
+  normalizeSiteItemForRendering,
+} from "@/components/cms/card-content";
 import { GridSettings } from "@/components/cms/GridSettings";
 
 const icons = {
@@ -112,20 +117,28 @@ export async function LocalizedHome({
           >
             {itemsFor(features).map((item) => {
               const Icon = itemIcon(item.icon_key);
+              const ordered = hasStoredContentBlocks(item);
               return (
                 <article
                   key={item.id}
-                  className={`feature-card interactive-card cms-editable-card ${item.variant || ""}`}
+                  className={`feature-card interactive-card cms-editable-card ${ordered ? "has-ordered-content" : ""} ${item.variant || ""}`}
                 >
                   <InlineItemEditor locale={locale} item={item} />
-                  <CardMedia item={item} locale={locale} position="top" />
-                  <span className="feature-icon">
-                    <Icon size={27} />
-                  </span>
-                  <h2>{local(item, "title", locale)}</h2>
-                  <p>{local(item, "description", locale)}</p>
-                  <CardButton item={item} locale={locale} />
-                  <CardMedia item={item} locale={locale} position="bottom" />
+                  {ordered ? (
+                    <CardContentRenderer
+                      {...normalizeSiteItemForRendering(item)}
+                      locale={locale}
+                    />
+                  ) : (
+                    <>
+                      <CardMedia item={item} locale={locale} position="top" />
+                      <span className="feature-icon"><Icon size={27} /></span>
+                      <h2>{local(item, "title", locale)}</h2>
+                      <p>{local(item, "description", locale)}</p>
+                      <CardButton item={item} locale={locale} />
+                      <CardMedia item={item} locale={locale} position="bottom" />
+                    </>
+                  )}
                 </article>
               );
             })}
@@ -153,18 +166,28 @@ export async function LocalizedHome({
           >
             {itemsFor(explore).map((item) => {
               const Icon = itemIcon(item.icon_key);
+              const ordered = hasStoredContentBlocks(item);
               return (
                 <article
                   key={item.id}
-                  className={`explore-card interactive-card cms-editable-card ${item.variant || ""}`}
+                  className={`explore-card interactive-card cms-editable-card ${ordered ? "has-ordered-content" : ""} ${item.variant || ""}`}
                 >
                   <InlineItemEditor locale={locale} item={item} />
-                  <CardMedia item={item} locale={locale} position="top" />
-                  <Icon size={23} />
-                  <h3>{local(item, "title", locale)}</h3>
-                  <p>{local(item, "description", locale)}</p>
-                  <CardButton item={item} locale={locale} />
-                  <CardMedia item={item} locale={locale} position="bottom" />
+                  {ordered ? (
+                    <CardContentRenderer
+                      {...normalizeSiteItemForRendering(item)}
+                      locale={locale}
+                    />
+                  ) : (
+                    <>
+                      <CardMedia item={item} locale={locale} position="top" />
+                      <Icon size={23} />
+                      <h3>{local(item, "title", locale)}</h3>
+                      <p>{local(item, "description", locale)}</p>
+                      <CardButton item={item} locale={locale} />
+                      <CardMedia item={item} locale={locale} position="bottom" />
+                    </>
+                  )}
                 </article>
               );
             })}
@@ -180,34 +203,25 @@ export async function LocalizedHome({
       {(project || author) && (
         <section className="project-preview container">
           {author &&
-            itemsFor(author).map((item) => (
-              <article key={item.id} className="author-pane cms-editable-card">
+            itemsFor(author).map((item) => {
+              const ordered = hasStoredContentBlocks(item);
+              return <article key={item.id} className={`author-pane cms-editable-card ${ordered ? "has-ordered-content" : ""}`}>
                 <InlineItemEditor locale={locale} item={item} portraitOnly />
-                {item.image_url && (
-                  <div className="portrait">
-                    <img
-                      src={item.image_url}
-                      alt={local(item, "title", locale)}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        display: "block",
-                        borderRadius: "inherit",
-                        objectFit: "cover",
-                      }}
-                    />
+                {ordered ? <CardContentRenderer {...normalizeSiteItemForRendering(item)} locale={locale} /> : <>
+                  {item.image_url && (
+                    <div className="portrait">
+                      <img src={item.image_url} alt={local(item, "title", locale)} style={{ width: "100%", height: "100%", display: "block", borderRadius: "inherit", objectFit: "cover" }} />
+                    </div>
+                  )}
+                  <div>
+                    <span className="eyebrow">{local(author, "title", locale)}</span>
+                    <h2>{local(item, "title", locale)}</h2>
+                    <p>{local(item, "description", locale)}</p>
+                    <CardButton item={item} locale={locale} />
                   </div>
-                )}
-                <div>
-                  <span className="eyebrow">
-                    {local(author, "title", locale)}
-                  </span>
-                  <h2>{local(item, "title", locale)}</h2>
-                  <p>{local(item, "description", locale)}</p>
-                  <CardButton item={item} locale={locale} />
-                </div>
+                </>}
               </article>
-            ))}
+            })}
           {author && (
             <AddItemCard
               locale={locale}
@@ -216,20 +230,21 @@ export async function LocalizedHome({
             />
           )}
           {project &&
-            itemsFor(project).map((item) => (
-              <article key={item.id} className="project-pane cms-editable-card">
+            itemsFor(project).map((item) => {
+              const ordered = hasStoredContentBlocks(item);
+              return <article key={item.id} className={`project-pane cms-editable-card ${ordered ? "has-ordered-content" : ""}`}>
                 <InlineItemEditor locale={locale} item={item} />
-                <span className="book-mark">✦</span>
-                <CardMedia item={item} locale={locale} position="top" />
-                <span className="eyebrow">
-                  {local(project, "title", locale)}
-                </span>
-                <h2>{local(item, "title", locale)}</h2>
-                <p>{local(item, "description", locale)}</p>
-                <CardButton item={item} locale={locale} />
-                <CardMedia item={item} locale={locale} position="bottom" />
+                {ordered ? <CardContentRenderer {...normalizeSiteItemForRendering(item)} locale={locale} /> : <>
+                  <span className="book-mark">✦</span>
+                  <CardMedia item={item} locale={locale} position="top" />
+                  <span className="eyebrow">{local(project, "title", locale)}</span>
+                  <h2>{local(item, "title", locale)}</h2>
+                  <p>{local(item, "description", locale)}</p>
+                  <CardButton item={item} locale={locale} />
+                  <CardMedia item={item} locale={locale} position="bottom" />
+                </>}
               </article>
-            ))}
+            })}
           {project && (
             <AddItemCard
               locale={locale}

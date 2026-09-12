@@ -26,7 +26,7 @@ body {
   margin: 0;
   background: var(--ivory);
   color: var(--ink);
-  font-family: var(--font-body, var(--font-heebo)), Arial, sans-serif;
+  font-family: var(--font-heebo), Arial, sans-serif;
   font-size: var(--text-base, 1rem);
   line-height: 1.65;
 }
@@ -45,8 +45,7 @@ button:focus-visible {
 }
 .arabic,
 .locale-ar {
-  font-family:
-    var(--font-arabic-body, var(--font-noto-arabic)), Arial, sans-serif;
+  font-family: var(--font-noto-arabic), Arial, sans-serif;
   direction: rtl;
 }
 .header {
@@ -113,7 +112,7 @@ button:focus-visible {
   background: transparent;
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  border-radius: var(--radius-button);
   color: var(--ink);
   cursor: pointer;
 }
@@ -168,7 +167,7 @@ button:focus-visible {
   background: var(--teal-dark);
   color: #fff;
   padding: 13px 23px;
-  border-radius: 999px;
+  border-radius: var(--radius-button);
   font-weight: 700;
   transition: 0.2s;
 }
@@ -740,7 +739,7 @@ footer .footer-inner {
   border: 1px solid #cbd9d3;
   background: transparent;
   padding: 7px 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-button);
   color: var(--teal-dark);
   font: inherit;
   font-size: 14px;

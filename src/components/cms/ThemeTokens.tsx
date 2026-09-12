@@ -1,11 +1,6 @@
 import { getDesignSettings, type DesignSettings } from "@/lib/cms";
 import { themeNames, themeTokens } from "./themePresets";
 export { themeNames } from "./themePresets";
-const typography = {
-  clean: { he: "var(--font-heebo)", ar: "var(--font-noto-arabic)" },
-  soft: { he: "var(--font-assistant)", ar: "var(--font-noto-arabic)" },
-  modern: { he: "var(--font-rubik)", ar: "var(--font-cairo)" },
-};
 const scales = {
   compact: {
     xs: "0.75rem",
@@ -41,13 +36,12 @@ export async function ThemeTokens({
   settings?: DesignSettings;
 }) {
   const settings = provided || (await getDesignSettings());
-  const type = typography[settings.typographyPreset],
-    scale = scales[settings.textScale];
+  const scale = scales[settings.textScale];
   const themeCss = Object.entries(
     themeTokens[settings.themeKey] || themeTokens.original,
   )
     .map(([name, value]) => `${name}:${value}`)
     .join(";");
-  const typeCss = `--font-body:${type.he},Arial,sans-serif;--font-arabic-body:${type.ar},Arial,sans-serif;--text-xs:${scale.xs};--text-sm:${scale.sm};--text-base:${scale.base};--text-lg:${scale.lg};--text-xl:${scale.xl};--text-2xl:${scale.xxl};--text-display:${scale.display}`;
+  const typeCss = `--text-xs:${scale.xs};--text-sm:${scale.sm};--text-base:${scale.base};--text-lg:${scale.lg};--text-xl:${scale.xl};--text-2xl:${scale.xxl};--text-display:${scale.display}`;
   return <style>{`:root{${themeCss};${typeCss}}`}</style>;
 }
