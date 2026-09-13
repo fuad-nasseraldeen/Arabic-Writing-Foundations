@@ -33,13 +33,15 @@ function DrilldownCard({
   locale,
   childItems,
   onOpen,
+  forceGroup,
 }: {
   item: SiteItem;
   locale: Locale;
   childItems: SiteItem[];
   onOpen: (item: SiteItem) => void;
+  forceGroup: boolean;
 }) {
-  return <CmsCard item={item} locale={locale} childCount={childItems.length} onOpenGroup={() => onOpen(item)} className={`drilldown-card ${item.variant || "default"}`} adminControls={<InlineItemEditor locale={locale} item={item} childItems={childItems} />} />;
+  return <CmsCard item={item} locale={locale} childCount={childItems.length} onOpenGroup={() => onOpen(item)} forceGroup={forceGroup} className={`drilldown-card ${item.variant || "default"}`} adminControls={<InlineItemEditor locale={locale} item={item} childItems={childItems} />} />;
 }
 
 export function ExpandableCardGrid({
@@ -49,6 +51,7 @@ export function ExpandableCardGrid({
   addLabel,
   sectionId,
   rootLabel,
+  emptyItemsAreGroups = false,
 }: {
   locale: Locale;
   items: SiteItem[];
@@ -56,6 +59,8 @@ export function ExpandableCardGrid({
   addLabel: string;
   sectionId: string;
   rootLabel: string;
+  /** A collection of groups may open an empty group before it has child content. */
+  emptyItemsAreGroups?: boolean;
 }) {
   const editing = useCmsEditMode(),
     l = copy[locale];
@@ -182,6 +187,7 @@ export function ExpandableCardGrid({
               (candidate) => candidate.parent_id === item.id,
             )}
             onOpen={(node) => navigate(node.id, "forward")}
+            forceGroup={emptyItemsAreGroups && !currentId}
           />
         ))}
         {editing && (

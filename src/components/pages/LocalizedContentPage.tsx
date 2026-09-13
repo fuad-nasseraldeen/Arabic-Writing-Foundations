@@ -58,6 +58,7 @@ export async function LocalizedContentPage({
           sectionId={section.id}
           rootLabel={sectionTitle}
           addLabel={addLabels[pageKey] || (isHe ? "הוסף כרטיס" : "إضافة بطاقة")}
+          emptyItemsAreGroups={pageKey === "letters"}
         />
       ) : (
         <>

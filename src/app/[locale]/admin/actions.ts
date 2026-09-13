@@ -3,6 +3,8 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { isFontPresetKey } from "@/components/cms/fontPresets";
+import { isAccentPresetKey } from "@/components/cms/themePresets";
 const slugify = (v: string) =>
   v
     .trim()
@@ -416,6 +418,8 @@ export async function saveTheme(locale: string, formData: FormData) {
   const supabase = await createClient();
   const theme_key = value(formData, "theme_key");
   const textScale = value(formData, "text_scale") || "normal";
+  const fontPreset = value(formData, "font_preset") || "heebo";
+  const accentPreset = value(formData, "accent_preset") || "teal";
   if (
     !["original", "white", "soft-blue", "soft-lavender", "warm-beige"].includes(
       theme_key,
@@ -424,6 +428,8 @@ export async function saveTheme(locale: string, formData: FormData) {
     throw new Error("Invalid theme preset.");
   if (!['compact', 'normal', 'large'].includes(textScale))
     throw new Error("Invalid text scale.");
+  if (!isFontPresetKey(fontPreset)) throw new Error("Invalid font preset.");
+  if (!isAccentPresetKey(accentPreset)) throw new Error("Invalid accent preset.");
   const { data: current, error: readError } = await supabase
     .from("theme_settings")
     .select("tokens")
@@ -435,7 +441,7 @@ export async function saveTheme(locale: string, formData: FormData) {
     : {};
   const { error } = await supabase
     .from("theme_settings")
-    .update({ name: theme_key, theme_key, tokens: { ...tokens, textScale }, updated_by: user.id })
+    .update({ name: theme_key, theme_key, tokens: { ...tokens, textScale, fontPreset, accentPreset }, updated_by: user.id })
     .eq("is_active", true);
   if (error) throw new Error(error.message);
   revalidateTag("theme", "max");
@@ -683,7 +689,7 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
     delete titleStyle.align;
   if (!["small", "normal", "large", "heading"].includes(String(titleStyle.size)))
     delete titleStyle.size;
-  if (!['tight', 'normal', 'loose'].includes(String(titleStyle.spacing)))
+  if (!['none', 'tight', 'normal', 'loose'].includes(String(titleStyle.spacing)))
     delete titleStyle.spacing;
   if (typeof titleStyle.bold !== "boolean") delete titleStyle.bold;
   if (typeof titleStyle.underline !== "boolean") delete titleStyle.underline;
@@ -705,8 +711,11 @@ export async function saveVisualSiteItem(locale: string, formData: FormData) {
   const { data: before } = id
     ? await supabase.from("site_items").select("*").eq("id", id).single()
     : { data: null };
-  const itemType = value(formData, "item_type");
-  if (!['feature_card', 'group'].includes(itemType))
+  const requestedItemType = value(formData, "item_type");
+  // A group is stored as a regular card plus click_behavior=children. This
+  // keeps old editor submissions safe against the database item-type check.
+  const itemType = requestedItemType === "group" ? "feature_card" : requestedItemType;
+  if (itemType !== "feature_card")
     throw new Error("Invalid card type.");
   const validBlock = (block: unknown) => {
     if (!block || typeof block !== "object" || Array.isArray(block)) return false;
@@ -843,30 +852,34 @@ export async function moveSiteItem(locale: string, formData: FormData) {
 export async function saveWorksheet(locale: string, formData: FormData) {
   const user = await requireAdmin(locale);
   const supabase = await createClient();
-  const id = value(formData, "id"),
-    difficulty = value(formData, "difficulty"),
-    activity_type = value(formData, "activity_type"),
-    age_group = value(formData, "age_group") || null,
-    file_url = value(formData, "file_url") || null,
-    thumbnail_url = value(formData, "thumbnail_url") || null;
-  if (!["easy", "medium", "hard"].includes(difficulty))
-    throw new Error("Invalid difficulty.");
-  if (
-    ![
-      "tracing",
-      "copying",
-      "completion",
-      "matching",
-      "sorting",
-      "independent-writing",
-      "visual-discrimination",
-      "multi-sensory",
-      "other",
-    ].includes(activity_type)
-  )
-    throw new Error("Invalid activity type.");
-  if (age_group && !["4-5", "5-6", "6-7", "all"].includes(age_group))
-    throw new Error("Invalid age group.");
+  const id = value(formData, "id");
+  const file_url = value(formData, "file_url") || null;
+  const thumbnail_url = value(formData, "thumbnail_url") || null;
+  const optionIds = [...formData.entries()]
+    .filter(([name]) => name === "filter_option_ids" || name.startsWith("filter_option_ids:"))
+    .map(([, optionId]) => String(optionId))
+    .filter(Boolean);
+  const uniqueOptionIds = [...new Set(optionIds)];
+  if (uniqueOptionIds.length) {
+    const { data: options, error } = await supabase
+      .from("filter_options")
+      .select("id,group_id")
+      .in("id", uniqueOptionIds);
+    if (error || options?.length !== uniqueOptionIds.length)
+      throw new Error(error?.message || "Invalid filter option.");
+    const groupIds = [...new Set(options.map((option) => option.group_id))];
+    const { data: groups, error: groupError } = await supabase
+      .from("filter_groups")
+      .select("id,selection_mode")
+      .in("id", groupIds);
+    if (groupError) throw new Error(groupError.message);
+    const modes = new Map(groups?.map((group) => [group.id, group.selection_mode]));
+    for (const groupId of groupIds) {
+      if (!modes.has(groupId)) throw new Error("Invalid filter group.");
+      if (modes.get(groupId) === "single" && options.filter((option) => option.group_id === groupId).length > 1)
+        throw new Error("Only one option may be selected for this filter group.");
+    }
+  }
   const { data: before } = id
     ? await supabase.from("worksheets").select("*").eq("id", id).single()
     : { data: null };
@@ -878,10 +891,6 @@ export async function saveWorksheet(locale: string, formData: FormData) {
       description_ar: value(formData, "description_ar") || null,
       therapeutic_goal_he: value(formData, "therapeutic_goal_he") || null,
       therapeutic_goal_ar: value(formData, "therapeutic_goal_ar") || null,
-      difficulty,
-      skill_id: value(formData, "skill_id") || null,
-      activity_type,
-      age_group,
       letter_group_id: value(formData, "letter_group_id") || null,
       thumbnail_url,
       file_url,
@@ -924,36 +933,14 @@ export async function saveWorksheet(locale: string, formData: FormData) {
         .single();
   if (result.error) throw new Error(result.error.message);
   const worksheetId = result.data.id;
-  await supabase
-    .from("worksheet_tags")
+  const { error: removeAssignmentsError } = await supabase
+    .from("worksheet_filter_options")
     .delete()
     .eq("worksheet_id", worksheetId);
-  let tagIds = formData.getAll("tag_ids").map(String).filter(Boolean);
-  const newName = value(formData, "new_tag_he");
-  if (newName) {
-    const slug = slugify(newName);
-    const { data: tag, error } = await supabase
-      .from("tags")
-      .upsert(
-        {
-          slug,
-          name_he: newName,
-          name_ar: value(formData, "new_tag_ar") || null,
-          created_by: user.id,
-        },
-        { onConflict: "slug" },
-      )
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    tagIds.push(tag.id);
-  }
-  if (tagIds.length) {
-    const { error } = await supabase.from("worksheet_tags").insert(
-      [...new Set(tagIds)].map((tag_id) => ({
-        worksheet_id: worksheetId,
-        tag_id,
-      })),
+  if (removeAssignmentsError) throw new Error(removeAssignmentsError.message);
+  if (uniqueOptionIds.length) {
+    const { error } = await supabase.from("worksheet_filter_options").insert(
+      uniqueOptionIds.map((option_id) => ({ worksheet_id: worksheetId, option_id })),
     );
     if (error) throw new Error(error.message);
   }
@@ -1005,4 +992,93 @@ export async function deleteWorksheet(locale: string, formData: FormData) {
   await audit("worksheet", id, "delete", before, null, user.id);
   revalidateTag("worksheets", "max");
   revalidatePath(`/${locale}/worksheets`);
+}
+
+const filterKey = (raw: string) => slugify(raw).replace(/_/g, "-");
+
+export async function saveFilterGroup(locale: string, formData: FormData) {
+  await requireAdmin(locale);
+  const supabase = await createClient();
+  const id = value(formData, "id");
+  const key = filterKey(value(formData, "key"));
+  const selection_mode = value(formData, "selection_mode");
+  if (!key || !/^[a-z0-9-]+$/.test(key)) throw new Error("A valid filter key is required.");
+  if (selection_mode !== "single" && selection_mode !== "multi") throw new Error("Invalid selection mode.");
+  const data = {
+    key,
+    label_he: value(formData, "label_he"),
+    label_ar: value(formData, "label_ar"),
+    selection_mode,
+    sort_order: Number(value(formData, "sort_order") || 0),
+    is_visible: formData.get("is_visible") === "on",
+  };
+  if (!data.label_he || !data.label_ar) throw new Error("Both filter labels are required.");
+  if (id && selection_mode === "single") {
+    const { data: options, error: optionsError } = await supabase
+      .from("filter_options")
+      .select("id")
+      .eq("group_id", id);
+    if (optionsError) throw new Error(optionsError.message);
+    const optionIds = options.map((option) => option.id);
+    if (optionIds.length) {
+      const { data: assignments, error: assignmentError } = await supabase
+        .from("worksheet_filter_options")
+        .select("worksheet_id")
+        .in("option_id", optionIds);
+      if (assignmentError) throw new Error(assignmentError.message);
+      const counts = new Map<string, number>();
+      for (const assignment of assignments) counts.set(assignment.worksheet_id, (counts.get(assignment.worksheet_id) || 0) + 1);
+      if ([...counts.values()].some((count) => count > 1))
+        throw new Error("This group has worksheets with multiple selected options.");
+    }
+  }
+  const result = id
+    ? await supabase.from("filter_groups").update(data).eq("id", id)
+    : await supabase.from("filter_groups").insert(data);
+  if (result.error) throw new Error(result.error.message);
+  revalidateTag("worksheets", "max");
+  revalidatePath(`/${locale}/worksheets`);
+  revalidatePath(`/${locale}/admin/filters`);
+}
+
+export async function saveFilterOption(locale: string, formData: FormData) {
+  await requireAdmin(locale);
+  const supabase = await createClient();
+  const id = value(formData, "id");
+  const group_id = value(formData, "group_id");
+  const key = filterKey(value(formData, "key"));
+  if (!group_id || !key || !/^[a-z0-9-]+$/.test(key)) throw new Error("A group and valid option key are required.");
+  const data = {
+    group_id,
+    key,
+    label_he: value(formData, "label_he"),
+    label_ar: value(formData, "label_ar"),
+    sort_order: Number(value(formData, "sort_order") || 0),
+    is_visible: formData.get("is_visible") === "on",
+  };
+  if (!data.label_he || !data.label_ar) throw new Error("Both option labels are required.");
+  const result = id
+    ? await supabase.from("filter_options").update(data).eq("id", id)
+    : await supabase.from("filter_options").insert(data);
+  if (result.error) throw new Error(result.error.message);
+  revalidateTag("worksheets", "max");
+  revalidatePath(`/${locale}/worksheets`);
+  revalidatePath(`/${locale}/admin/filters`);
+}
+
+export async function deleteFilterOption(locale: string, formData: FormData) {
+  await requireAdmin(locale);
+  const supabase = await createClient();
+  const id = value(formData, "id");
+  const { count, error: countError } = await supabase
+    .from("worksheet_filter_options")
+    .select("option_id", { count: "exact", head: true })
+    .eq("option_id", id);
+  if (countError) throw new Error(countError.message);
+  if ((count || 0) > 0) throw new Error("This option is in use. Hide it instead.");
+  const { error } = await supabase.from("filter_options").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidateTag("worksheets", "max");
+  revalidatePath(`/${locale}/worksheets`);
+  revalidatePath(`/${locale}/admin/filters`);
 }

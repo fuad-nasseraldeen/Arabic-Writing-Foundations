@@ -9,8 +9,8 @@
   align-items: center;
   gap: 8px;
   padding: 7px max(16px, calc((100% - 1200px) / 2));
-  background: #193545;
-  color: #fff;
+  background: var(--color-text);
+  color: var(--color-on-accent);
   box-shadow: 0 3px 10px #0002;
   font-size: var(--text-sm);
 }
@@ -18,8 +18,8 @@
   border: 0;
   border-radius: var(--radius-control);
   padding: 7px 10px;
-  background: var(--teal);
-  color: #fff;
+  background: var(--color-accent-border);
+  color: var(--color-on-accent);
   font: inherit;
   cursor: pointer;
 }
@@ -32,9 +32,9 @@
   display: none;
   gap: 4px;
   padding: 4px;
-  border: 1px solid #cbd9d3;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  background: var(--surface);
+  background: var(--color-surface);
   box-shadow: var(--shadow-sm);
 }
 .inline-controls form {
@@ -49,7 +49,7 @@
   border: 0;
   border-radius: var(--radius-button);
   background: transparent;
-  color: var(--teal-dark);
+  color: var(--color-accent);
   cursor: pointer;
 }
 html[data-edit-mode="on"] .inline-controls,
@@ -63,9 +63,8 @@ html[data-edit-mode="on"] .inline-card-controls {
   height: 100%;
   align-self: stretch;
 }
-.cms-card--actionable { cursor: pointer; }
 html[data-edit-mode="on"] .cms-editable-card {
-  outline: 1px dashed #83a99c;
+  outline: 1px dashed var(--color-accent-border);
   outline-offset: 4px;
 }
 .cms-toast {
@@ -75,13 +74,13 @@ html[data-edit-mode="on"] .cms-editable-card {
   left: 24px;
   padding: 11px 16px;
   border-radius: var(--radius-control);
-  background: var(--teal-dark);
-  color: #fff;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
   box-shadow: var(--shadow-md);
   font-size: var(--text-sm);
 }
 .cms-toast.error {
-  background: #9d4545;
+  background: var(--color-danger);
 }
 
 .button-spinner { animation: cms-spin .8s linear infinite; }
@@ -97,9 +96,9 @@ html[data-edit-mode="on"] .cms-editable-card {
   align-items: center;
   gap: 10px;
   padding: 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  background: var(--ivory);
+  background: var(--color-page);
 }
 .editor-media-preview img {
   width: 64px;
@@ -119,17 +118,17 @@ html[data-edit-mode="on"] .cms-editable-card {
   white-space: nowrap;
 }
 .editor-media-preview small {
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .icon-button {
   display: grid;
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: var(--surface);
-  color: var(--teal-dark);
+  background: var(--color-surface);
+  color: var(--color-accent);
   cursor: pointer;
 }
 .media-options {
@@ -146,10 +145,10 @@ html[data-edit-mode="on"] .cms-editable-card {
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-button);
-  background: var(--surface);
-  color: var(--teal-dark);
+  background: var(--color-surface);
+  color: var(--color-accent);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
 }
@@ -167,17 +166,17 @@ html[data-edit-mode="on"] .grid-settings-button {
   gap: 8px;
 }
 .column-segments button {
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border);
   border-radius: 9px;
   padding: 10px;
-  background: var(--surface);
+  background: var(--color-surface);
   font: inherit;
   cursor: pointer;
 }
 .column-segments button.active {
-  border-color: var(--teal-dark);
-  background: var(--teal-dark);
-  color: #fff;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
 }
 
 /* One hierarchy level only. Replaces nested child regions and connector rows. */
@@ -205,7 +204,7 @@ html[data-edit-mode="on"] .grid-settings-button {
   padding: 0;
   background: transparent;
   box-shadow: none;
-  color: var(--teal-dark);
+  color: var(--color-accent);
   font: inherit;
   font-weight: 600;
   line-height: 1.4;
@@ -215,14 +214,14 @@ html[data-edit-mode="on"] .grid-settings-button {
 }
 @media (hover: hover) {
   .text-nav-action:hover {
-    color: var(--ink);
+    color: var(--color-text);
     text-decoration: underline;
     text-underline-offset: 3px;
   }
 }
 .text-nav-action:active { opacity: 0.7; }
 .text-nav-action:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--teal), transparent 45%);
+  outline: 2px solid color-mix(in srgb, var(--color-accent-border), transparent 45%);
   outline-offset: 3px;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -235,7 +234,7 @@ html[data-edit-mode="on"] .grid-settings-button {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
   list-style: none;
   white-space: nowrap;
@@ -248,7 +247,7 @@ html[data-edit-mode="on"] .grid-settings-button {
 .hierarchy-breadcrumb li + li::before {
   content: "›";
   margin-inline-end: 7px;
-  color: color-mix(in srgb, var(--muted), transparent 45%);
+  color: color-mix(in srgb, var(--color-text-muted), transparent 45%);
 }
 .hierarchy-breadcrumb .text-nav-action {
   max-width: 16ch;
@@ -257,7 +256,7 @@ html[data-edit-mode="on"] .grid-settings-button {
   white-space: nowrap;
 }
 .hierarchy-breadcrumb [aria-current="page"] {
-  color: var(--ink);
+  color: var(--color-text);
   font-weight: 700;
 }
 .drilldown-title {
@@ -276,7 +275,7 @@ html[data-edit-mode="on"] .grid-settings-button {
 }
 .drilldown-empty {
   margin: 0;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .drilldown-grid.is-leaving {
   pointer-events: none;
@@ -323,55 +322,23 @@ html[data-edit-mode="on"] .grid-settings-button {
 .theme-preview {
   display: grid;
   gap: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: 14px;
-  background: var(--surface);
+  background: var(--color-surface);
   cursor: pointer;
 }
 .theme-preview.selected {
-  outline: 3px solid var(--teal);
+  outline: 3px solid var(--color-accent-border);
 }
 .preview-swatch {
   height: 65px;
   border-radius: var(--radius-control);
   background: linear-gradient(
     135deg,
-    #fbf8f0 0 48%,
-    #39716a 49% 65%,
-    #dcebe2 66%
-  );
-}
-.preview-swatch.white {
-  background: linear-gradient(
-    135deg,
-    #fafcfc 0 48%,
-    #527a78 49% 65%,
-    #e5f0ee 66%
-  );
-}
-.preview-swatch.soft-blue {
-  background: linear-gradient(
-    135deg,
-    #f3f8fb 0 48%,
-    #496f87 49% 65%,
-    #dcecef 66%
-  );
-}
-.preview-swatch.soft-lavender {
-  background: linear-gradient(
-    135deg,
-    #f8f6fb 0 48%,
-    #6b6686 49% 65%,
-    #e9e3f2 66%
-  );
-}
-.preview-swatch.warm-beige {
-  background: linear-gradient(
-    135deg,
-    #fbf8f1 0 48%,
-    #6c7866 49% 65%,
-    #f6e3d4 66%
+    var(--preview-page) 0 48%,
+    var(--preview-surface) 49% 65%,
+    var(--preview-soft) 66%
   );
 }
 @media (max-width: 900px) {

@@ -2,16 +2,16 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { t } from "@/i18n/dictionaries";
 import { createClient } from "@/lib/supabase/client";
 import { startNavigationProgress } from "@/components/navigation/NavigationProgress";
 import { useAuth, type HeaderUser } from "@/components/auth/AuthProvider";
-export function Brand({ locale }: { locale: Locale }) {
+export function Brand({ locale, onNavigate }: { locale: Locale; onNavigate?: () => void }) {
   const d = t(locale);
   return (
-    <Link href={`/${locale}`} className="brand" aria-label={d.brand}>
+    <Link href={`/${locale}`} className="brand" aria-label={d.brand} onClick={onNavigate}>
       <span className="leaf">❧</span>
       <span>
         {locale === "he" ? (
@@ -60,8 +60,15 @@ export function Header({
     router = useRouter();
   const { user, isAdmin } = useAuth();
   const [open, setOpen] = useState(false),
-    [drop, setDrop] = useState(false);
+    [drop, setDrop] = useState(false),
+    [isSigningOut, setIsSigningOut] = useState(false);
+  const closeMobileNav = () => setOpen(false);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(closeMobileNav);
+    return () => window.cancelAnimationFrame(frame);
+  }, [path]);
   const switchTo = (to: Locale) => {
+    closeMobileNav();
     const parts = path.split("/");
     parts[1] = to;
     startNavigationProgress();
@@ -88,14 +95,20 @@ export function Header({
   const isCurrent = (href: string) =>
     href ? path === `/${locale}/${href}` : path === `/${locale}`;
   const signOut = async () => {
-    await createClient().auth.signOut();
-    setDrop(false);
-    router.replace(`/${locale}`);
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    const { error } = await createClient().auth.signOut();
+    if (error) {
+      setIsSigningOut(false);
+      return;
+    }
+    // A hard navigation makes the next request read the cleared auth cookies.
+    window.location.replace(`/${locale}`);
   };
   return (
     <header className="header">
       <div className="nav-wrap">
-        <Brand locale={locale} />
+        <Brand locale={locale} onNavigate={closeMobileNav} />
         <nav
           className="desktop-nav"
           aria-label={locale === "he" ? "ניווט ראשי" : "التنقل الرئيسي"}
@@ -155,7 +168,13 @@ export function Header({
                       {locale === "he" ? "משתמשים" : "المستخدمون"}
                     </Link>
                   )}
-                  <button type="button" onClick={signOut}>
+                  <button
+                    type="button"
+                    className="logout-button"
+                    onClick={signOut}
+                    disabled={isSigningOut}
+                    aria-busy={isSigningOut}
+                  >
                     {d.auth.logout}
                   </button>
                 </div>
@@ -200,7 +219,7 @@ export function Header({
                 href={`/${locale}/${hrefs[i]}`}
                 prefetch={true}
                 aria-current={current ? "page" : undefined}
-                onClick={() => setOpen(false)}
+                onClick={closeMobileNav}
               >
                 {d.nav[key]}
               </Link>
@@ -218,7 +237,7 @@ export function Header({
           {isAdmin && (
             <Link
               href={`/${locale}/admin/users`}
-              onClick={() => setOpen(false)}
+                onClick={closeMobileNav}
             >
               {locale === "he" ? "משתמשים" : "المستخدمون"}
             </Link>

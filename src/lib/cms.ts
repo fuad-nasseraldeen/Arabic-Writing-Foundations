@@ -1,6 +1,15 @@
 import { unstable_cache } from "next/cache";
 import { createClient, createPublicClient } from "@/lib/supabase/server";
 import type { Locale } from "@/i18n/config";
+import {
+  normalizeFontPreset,
+  type FontPresetKey,
+} from "@/components/cms/fontPresets";
+import {
+  defaultAccentPreset,
+  isAccentPresetKey,
+  type AccentPresetKey,
+} from "@/components/cms/themePresets";
 export { local, type ClickBehavior, type SiteItem } from "@/lib/cms-shared";
 import type { SiteItem } from "@/lib/cms-shared";
 export type Section = {
@@ -67,6 +76,8 @@ export async function getPageCms(pageKey: string, includeDraft = false) {
 export type DesignSettings = {
   themeKey: string;
   textScale: "compact" | "normal" | "large";
+  fontPreset: FontPresetKey;
+  accentPreset: AccentPresetKey;
 };
 const cachedDesignSettings = unstable_cache(
   async (): Promise<DesignSettings> => {
@@ -82,9 +93,16 @@ const cachedDesignSettings = unstable_cache(
     )
       ? (String(tokens.textScale) as DesignSettings["textScale"])
       : "normal";
+    const fontPreset = normalizeFontPreset(String(tokens.fontPreset));
+    const savedAccentPreset = String(tokens.accentPreset);
+    const accentPreset = isAccentPresetKey(savedAccentPreset)
+      ? savedAccentPreset
+      : defaultAccentPreset;
     return {
       themeKey: data?.theme_key || "original",
       textScale,
+      fontPreset,
+      accentPreset,
     };
   },
   ["active-design-settings"],

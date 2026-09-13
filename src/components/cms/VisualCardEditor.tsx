@@ -68,13 +68,13 @@ const labels: Record<Locale, Record<string, string>> = {
     replaceImage: "החלף תמונה", replaceFile: "החלף קובץ", displayName: "שם להצגה",
     viewDocument: "צפייה במסמך", align: "יישור", width: "רוחב", actions: "פעולות", size: "גודל", spacing: "ריווח",
     start: "התחלה", center: "מרכז", end: "סוף", small: "קטן", normal: "רגיל",
-    large: "גדול", heading: "כותרת", tight: "צפוף", loose: "מרווח",
+    large: "גדול", heading: "כותרת", tight: "צפוף", loose: "מרווח", noSpacing: "ללא רווח",
     medium: "בינוני", full: "מלא", fit: "התאמה", cover: "מילוי", contain: "תמונה מלאה",
     bold: "מודגש", underline: "קו תחתון",
     cardDesign: "עיצוב הכרטיס", background: "רקע", border: "מסגרת", density: "צפיפות", showChildCount: "הצג מספר פריטים", items: "פריטים", on: "פעיל", off: "כבוי",
     default: "רגיל", accent: "מודגש", softBorder: "עדינה", none: "ללא", compact: "קומפקטי", relaxed: "מרווח",
     moveUp: "הזז למעלה", moveDown: "הזז למטה", duplicate: "שכפל", remove: "מחק",
-    cancel: "ביטול", save: "שמור", saving: "שומר...", buttonText: "טקסט הכפתור",
+    cancel: "ביטול", save: "שמור", saving: "שומר...", saveFailed: "השינויים לא נשמרו. נסו שוב.", buttonText: "טקסט הכפתור",
     destination: "יעד", close: "סגור",
   },
   ar: {
@@ -85,13 +85,13 @@ const labels: Record<Locale, Record<string, string>> = {
     replaceImage: "استبدال الصورة", replaceFile: "استبدال الملف", displayName: "اسم العرض",
     viewDocument: "عرض المستند", align: "محاذاة", width: "العرض", actions: "إجراءات", size: "الحجم", spacing: "التباعد",
     start: "بداية", center: "وسط", end: "نهاية", small: "صغير", normal: "عادي",
-    large: "كبير", heading: "عنوان", tight: "ضيق", loose: "واسع",
+    large: "كبير", heading: "عنوان", tight: "ضيق", loose: "واسع", noSpacing: "بدون تباعد",
     medium: "متوسط", full: "كامل", fit: "الملاءمة", cover: "ملء", contain: "الصورة كاملة",
     bold: "عريض", underline: "تحته خط",
     cardDesign: "تصميم البطاقة", background: "الخلفية", border: "الإطار", density: "الكثافة", showChildCount: "إظهار عدد العناصر", items: "عناصر", on: "تشغيل", off: "إيقاف",
     default: "عادي", accent: "بارز", softBorder: "ناعم", none: "بدون", compact: "مضغوط", relaxed: "مريح",
     moveUp: "نقل لأعلى", moveDown: "نقل لأسفل", duplicate: "نسخ", remove: "حذف",
-    cancel: "إلغاء", save: "حفظ", saving: "جارٍ الحفظ...", buttonText: "نص الزر",
+    cancel: "إلغاء", save: "حفظ", saving: "جارٍ الحفظ...", saveFailed: "لم يتم حفظ التغييرات. حاولوا مرة أخرى.", buttonText: "نص الزر",
     destination: "الوجهة", close: "إغلاق",
   },
 };
@@ -121,6 +121,7 @@ export function VisualCardEditor({ item, sectionId, parentId, isGroup = false, l
   const [cardStyleOpen, setCardStyleOpen] = useState(false);
   const [tab, setTab] = useState<"editor" | "preview">("editor");
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const editorToolsRef = useRef<HTMLDivElement>(null);
   const l = labels[language];
   const previewItem = {
@@ -166,9 +167,16 @@ export function VisualCardEditor({ item, sectionId, parentId, isGroup = false, l
     setBlocks((current) => current.concat(block));
     setSelectedId(block.id);
     setAddOpen(false);
+    window.requestAnimationFrame(() => {
+      const added = document.getElementById(`visual-block-${block.id}`);
+      added?.scrollIntoView({ behavior: "smooth", block: "end" });
+      const field = added?.querySelector<HTMLElement>("textarea, input, button");
+      field?.focus({ preventScroll: true });
+    });
   };
   const save = async () => {
     setSaving(true);
+    setSaveError(null);
     const image = blocks.find((block): block is MediaBlock => block.type === "image" && Boolean(block.media.url));
     const file = blocks.find((block): block is MediaBlock => block.type === "pdf" && Boolean(block.media.url));
     const button = blocks.find((block): block is ButtonBlock => block.type === "button");
@@ -176,7 +184,9 @@ export function VisualCardEditor({ item, sectionId, parentId, isGroup = false, l
     const data = new FormData();
     const fields: Record<string, string> = {
       id: item?.id || "", section_id: sectionId, parent_id: parentId || item?.parent_id || "",
-      item_type: kind === "group" ? "group" : "feature_card", click_behavior: kind === "group" ? "children" : "content",
+      // Groups are an interaction mode. The database stores their card shell
+      // as feature_card and derives the group behavior from click_behavior.
+      item_type: "feature_card", click_behavior: kind === "group" ? "children" : "content",
       title_he: title.he, title_ar: title.ar, description_he: text?.he || "", description_ar: text?.ar || "",
       image_url: image?.media.url || "", file_url: file?.media.url || "",
       original_file_name: image?.media.name || file?.media.name || "", media_mime_type: image?.media.mime || "",
@@ -190,6 +200,8 @@ export function VisualCardEditor({ item, sectionId, parentId, isGroup = false, l
       await saveVisualSiteItem(locale, data);
       onSaved?.(item as SiteItem);
       onClose();
+    } catch (error) {
+      setSaveError(error instanceof Error && error.message ? error.message : l.saveFailed);
     } finally { setSaving(false); }
   };
   return <div className="visual-editor" dir={language === "he" ? "rtl" : "rtl"}>
@@ -215,7 +227,7 @@ export function VisualCardEditor({ item, sectionId, parentId, isGroup = false, l
         <CmsCard item={previewItem} locale={language} childCount={kind === "group" ? 2 : 0} className="visual-preview-card-shell" preview />
       </section>
     </div>
-    <footer className="visual-editor-footer"><button type="button" className="outline-button compact-button" onClick={onClose}>{l.cancel}</button><button type="button" className="button compact-button" disabled={saving} onClick={save}>{saving && <LoaderCircle className="spin" size={15} />}{saving ? l.saving : l.save}</button></footer>
+    <footer className="visual-editor-footer"><div className="visual-save-feedback" aria-live="polite">{saving && <span>{l.saving}</span>}{saveError && <p role="alert">{saveError}</p>}</div><button type="button" className="outline-button compact-button" disabled={saving} onClick={onClose}>{l.cancel}</button><button type="button" className="button compact-button" disabled={saving} onClick={save}>{saving && <LoaderCircle className="spin" size={15} />}{saving ? l.saving : l.save}</button></footer>
   </div>;
 }
 
@@ -239,7 +251,7 @@ function BlockEditor({ block, locale, cardStyle, selected, menuOpen, index, tota
   const icon = block.type === "image" ? <ImageIcon size={15} /> : block.type === "pdf" ? <FileText size={15} /> : block.type === "source" ? <Quote size={15} /> : block.type === "subheading" ? <Type size={15} /> : block.type === "button" ? <Link2 size={15} /> : <Text size={15} />;
   const name = l[block.type === "paragraph" ? "paragraph" : block.type] as string;
   const setMedia = (value: { url: string; name?: string; mime?: string }) => media && onUpdate({ ...block, media: { ...block.media, ...value } } as MediaBlock);
-  return <article className={"visual-block block-" + block.type + (selected ? " selected" : "")} onClick={onSelect}>
+  return <article id={`visual-block-${block.id}`} className={"visual-block block-" + block.type + (selected ? " selected" : "")} onClick={onSelect}>
     <header><b>{icon}{name}</b>{media && block.media.url && <button type="button" className="icon-button block-replace" title={block.type === "image" ? l.replaceImage : l.replaceFile} aria-label={block.type === "image" ? l.replaceImage : l.replaceFile} onClick={(event) => { event.stopPropagation(); picker.current?.open(); }}><RefreshCw size={15} /></button>}<button type="button" className="icon-button" title={l.remove} aria-label={l.remove} onClick={(event) => { event.stopPropagation(); onRemove(); }}><X size={16} /></button><div className="block-actions"><button type="button" className="icon-button" title={l.actions} aria-label={l.actions} onClick={(event) => { event.stopPropagation(); onMenu(!menuOpen); }}><MoreHorizontal size={17} /></button>{menuOpen && <BlockMenu l={l} index={index} total={total} onMove={onMove} blockId={block.id} onDuplicate={onDuplicate} onRemove={onRemove} close={() => onMenu(false)} />}</div></header>
     {media ? <MediaEditor block={block as MediaBlock} l={l} picker={picker} onMedia={setMedia} onUpdate={onUpdate} /> : block.type === "button" ? <ButtonEditor block={block} locale={locale} onUpdate={onUpdate} /> : <TextEditor block={block as TextBlock} locale={locale} cardStyle={resolveCardStyle(cardStyle)} selected={selected} onUpdate={onUpdate} />}
   </article>;
@@ -264,11 +276,11 @@ function TitleControls({ l, style, cardStyle, onChange }: { l: Record<string, st
 
 function StyleControls({ l, style, defaults, onChange }: { l: Record<string, string>; style: TextStyle; defaults: Required<TextStyle>; onChange: (patch: Partial<TextStyle>) => void }) {
   const resolved = { align: style.align ?? defaults.align, size: style.size ?? defaults.size, spacing: style.spacing ?? defaults.spacing, bold: style.bold ?? defaults.bold, underline: style.underline ?? defaults.underline };
-  return <div className="text-controls"><Segment l={l} label={l.align} value={resolved.align} choices={["start", "center", "end"]} onChange={(align) => onChange({ align: align as TextStyle["align"] })} /><Segment l={l} label={l.size} value={resolved.size} choices={["small", "normal", "large", "heading"]} onChange={(size) => onChange({ size: size as TextStyle["size"] })} /><Segment l={l} label={l.spacing} value={resolved.spacing} choices={["tight", "normal", "loose"]} onChange={(spacing) => onChange({ spacing: spacing as TextStyle["spacing"] })} /><div className="format-buttons"><button type="button" className={resolved.bold ? "active" : ""} title={l.bold} aria-label={l.bold} onClick={() => onChange({ bold: !resolved.bold })}><Bold size={15} /></button><button type="button" className={resolved.underline ? "active" : ""} title={l.underline} aria-label={l.underline} onClick={() => onChange({ underline: !resolved.underline })}><Underline size={15} /></button></div></div>;
+  return <div className="text-controls"><Segment l={l} label={l.align} value={resolved.align} choices={["start", "center", "end"]} onChange={(align) => onChange({ align: align as TextStyle["align"] })} /><Segment l={l} label={l.size} value={resolved.size} choices={["small", "normal", "large", "heading"]} onChange={(size) => onChange({ size: size as TextStyle["size"] })} /><Segment l={l} label={l.spacing} value={resolved.spacing} choices={["none", "tight", "normal", "loose"]} onChange={(spacing) => onChange({ spacing: spacing as TextStyle["spacing"] })} /><div className="format-buttons"><button type="button" className={resolved.bold ? "active" : ""} title={l.bold} aria-label={l.bold} onClick={() => onChange({ bold: !resolved.bold })}><Bold size={15} /></button><button type="button" className={resolved.underline ? "active" : ""} title={l.underline} aria-label={l.underline} onClick={() => onChange({ underline: !resolved.underline })}><Underline size={15} /></button></div></div>;
 }
 
 function Segment({ l, label, value, choices, onChange }: { l: Record<string, string>; label: string; value: string; choices: string[]; onChange: (value: string) => void }) {
-  return <label className="editor-select"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{choices.map((choice) => <option key={choice} value={choice}>{l[choice]}</option>)}</select></label>;
+  return <label className="editor-select"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{choices.map((choice) => <option key={choice} value={choice}>{choice === "none" && label === l.spacing ? l.noSpacing : l[choice]}</option>)}</select></label>;
 }
 
 function MediaEditor({ block, l, picker, onMedia, onUpdate }: { block: MediaBlock; l: Record<string, string>; picker: React.RefObject<InlineMediaUploadHandle | null>; onMedia: (value: { url: string; name?: string; mime?: string }) => void; onUpdate: (block: EditorBlock) => void }) {

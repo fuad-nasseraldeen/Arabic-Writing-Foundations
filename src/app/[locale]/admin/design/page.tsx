@@ -14,9 +14,9 @@ export default async function Page({
     <>
       <h1>{locale === "he" ? "עיצוב" : "التصميم"}</h1>
       <p className="muted-note">
-        {locale === "he" ? "ערכת צבעים" : "مجموعة الألوان"}
+        {locale === "he" ? "גופן, צבעים וגודל טקסט" : "الخط والألوان وحجم النص"}
       </p>
-      <ThemeSelector locale={locale} activeTheme={settings.themeKey} activeTextScale={settings.textScale} />
+      <ThemeSelector locale={locale} activeTheme={settings.themeKey} activeTextScale={settings.textScale} activeFontPreset={settings.fontPreset} activeAccentPreset={settings.accentPreset} />
     </>
   );
 }

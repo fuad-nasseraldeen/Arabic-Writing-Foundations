@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { Lightbulb, Settings } from "lucide-react";
+import { Lightbulb, Settings, SlidersHorizontal } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { setCmsEditMode } from "@/app/actions/cms-edit-mode";
@@ -84,6 +84,10 @@ export function CmsAdminProvider({
           <Link href={`/${locale}/admin/tips`} className="admin-settings-link">
             <Lightbulb size={16} />
             {locale === "he" ? "ניהול טיפים" : "إدارة النصائح"}
+          </Link>
+          <Link href={`/${locale}/admin/filters`} className="admin-settings-link">
+            <SlidersHorizontal size={16} />
+            {locale === "he" ? "ניהול פילטרים" : "إدارة المرشحات"}
           </Link>
           <Link href={`/${locale}/admin`} className="admin-settings-link">
             <Settings size={16} />

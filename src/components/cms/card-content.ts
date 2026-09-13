@@ -4,7 +4,7 @@ import { resolveInternalHref, type SiteItem } from "@/lib/cms-shared";
 export type TextBlockStyle = {
   align?: "start" | "center" | "end";
   size?: "small" | "normal" | "large" | "heading";
-  spacing?: "tight" | "normal" | "loose";
+  spacing?: "none" | "tight" | "normal" | "loose";
   bold?: boolean;
   underline?: boolean;
 };
@@ -119,8 +119,9 @@ export function resolveCardPrimaryAction(
   blocks: ContentBlock[],
   hasChildren: boolean,
   locale: Locale,
+  forceGroup = false,
 ): CardPrimaryAction {
-  if (hasChildren || item.click_behavior === "children") return { type: "group" };
+  if (forceGroup || hasChildren || item.click_behavior === "children") return { type: "group" };
   const document = blocks.find(
     (block): block is MediaContentBlock => block.type === "pdf" && Boolean(block.media.url),
   );
