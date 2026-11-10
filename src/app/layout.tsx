@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import {
   Alef,
+  Amiri,
   Assistant,
   Cairo,
   Heebo,
@@ -13,6 +14,7 @@ import "./interactions.css";
 import "./button-shape.css";
 import { ThemeTokens } from "@/components/cms/ThemeTokens";
 import { getDesignSettings } from "@/lib/cms";
+const amiri = Amiri({ subsets: ["arabic"], weight: ["400", "700"], variable: "--font-amiri", display: "swap" });
 const heebo = Heebo({
   subsets: ["hebrew"],
   weight: "variable",
@@ -68,7 +70,7 @@ export default async function RootLayout({
     <html
       dir="rtl"
       data-scroll-behavior="smooth"
-      className={`${heebo.variable} ${assistant.variable} ${alef.variable} ${notoHebrew.variable} ${playpenHebrew.variable} ${notoArabic.variable} ${cairo.variable}`}
+      className={`${amiri.variable} ${heebo.variable} ${assistant.variable} ${alef.variable} ${notoHebrew.variable} ${playpenHebrew.variable} ${notoArabic.variable} ${cairo.variable}`}
     >
       <body>
         <ThemeTokens settings={design} />

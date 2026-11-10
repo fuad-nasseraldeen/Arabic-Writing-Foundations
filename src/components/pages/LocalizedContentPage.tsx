@@ -1,3 +1,4 @@
+import { PageIntro } from "@/components/layout/PageIntro";
 import type { Locale } from "@/i18n/config";
 import { getPageCms, local } from "@/lib/cms";
 import { InlineSectionEditor } from "@/components/cms/InlineSectionEditor";
@@ -34,22 +35,14 @@ export async function LocalizedContentPage({
   };
   const sectionTitle = section ? local(section, "title", locale) : title;
   return (
-    <div className="page-shell container cms-section">
+    <div className={`page-shell container cms-section content-page content-page--${pageKey}`}>
       {section && (
         <>
           <InlineSectionEditor locale={locale} section={section} />
           <GridSettings locale={locale} section={section} />
         </>
       )}
-      <span className="eyebrow">{eyebrow}</span>
-      <h1>{sectionTitle}</h1>
-      <p className="lead">
-        {section
-          ? local(section, "subtitle", locale)
-          : isHe
-            ? "אזור תוכן מקצועי המוכן להרחבה ולעדכון בהתאם לחומר המקצועי שייאסף לפרויקט."
-            : "مساحة محتوى مهني جاهزة للتوسيع والتحديث وفق المواد المهنية التي ستُجمع للمشروع."}
-      </p>
+      <PageIntro title={sectionTitle} eyebrow={eyebrow} description={section ? local(section, "subtitle", locale) : undefined} />
       {section ? (
         <ExpandableCardGrid
           locale={locale}

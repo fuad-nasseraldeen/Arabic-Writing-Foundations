@@ -70,13 +70,13 @@ export async function LocalizedHome({
             <i className="branch a">❧</i>
             <i className="branch b">❧</i>
             <div className="paper paper-one">
-              <span className="arabic">ب</span>
+              <svg className="hero-letter" viewBox="0 0 160 180"><text x="80" y="105" textAnchor="middle">ب</text></svg>
             </div>
             <div className="paper paper-two">
-              <span className="arabic">ع</span>
+              <svg className="hero-letter" viewBox="0 0 160 180"><text x="80" y="105" textAnchor="middle">غ</text></svg>
             </div>
             <div className="paper paper-three">
-              <span className="arabic">ح</span>
+              <svg className="hero-letter" viewBox="0 0 160 180"><text x="80" y="105" textAnchor="middle">ج</text></svg>
             </div>
             <div className="pencil" />
           </div>
@@ -144,6 +144,7 @@ export async function LocalizedHome({
 
       {(project || author) && (
         <section className="project-preview container">
+          <div className="project-preview__content">
           {author &&
             itemsFor(author).map((item) => {
               return <CmsCard key={item.id} item={item} locale={locale} adminControls={<InlineItemEditor locale={locale} item={item} portraitOnly />} />
@@ -168,6 +169,7 @@ export async function LocalizedHome({
               }
             />
           )}
+          </div>
         </section>
       )}
     </>

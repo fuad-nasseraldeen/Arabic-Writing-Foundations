@@ -13,6 +13,7 @@ import { CmsAdminProvider } from "@/components/cms/CmsAdminProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { NavigationProgress } from "@/components/navigation/NavigationProgress";
 import "@/components/navigation/navigation.css";
+import "../reference-design.css";
 export function generateStaticParams() {
   return [{ locale: "he" }, { locale: "ar" }];
 }

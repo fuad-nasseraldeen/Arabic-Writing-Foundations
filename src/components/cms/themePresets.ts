@@ -40,6 +40,13 @@ export const textScaleTokens = {
   large: { xs: "0.875rem", sm: "0.9375rem", base: "1.0625rem", lg: "1.1875rem", xl: "1.4375rem", xxl: "2.0625rem", display: "clamp(2.5rem, 4.5vw, 3.5rem)" },
 } as const;
 
-export function getColorTokens(themeKey: string, accentKey: AccentPresetKey) {
-  return { ...sharedDesignTokens, ...(baseThemePresets[themeKey as BaseThemeKey] || baseThemePresets.original).tokens, ...accentPresets[accentKey].tokens };
+// The public palette is fixed; legacy saved presets remain readable for compatibility.
+export function getColorTokens(_themeKey: string, _accentKey: AccentPresetKey) {
+  return { ...sharedDesignTokens, ...baseThemePresets.original.tokens, ...accentPresets.teal.tokens,
+    "--color-page": "#fffdf9", "--color-surface": "#fffdf9", "--color-surface-soft": "#e5e9da",
+    "--color-header-surface": "#204e43", "--color-text": "#183e34", "--color-text-muted": "#535d53",
+    "--color-accent": "#205b49", "--color-accent-hover": "#143f33", "--color-accent-soft": "#e1e7d7",
+    "--color-accent-border": "#81966b", "--color-border": "#e9e2d6",
+    "--color-decoration-peach": "#f5dcc6", "--color-decoration-lavender": "#e7e9dc", "--color-decoration-yellow": "#f6ead4",
+  };
 }

@@ -1,3 +1,4 @@
+import { PageIntro } from "@/components/layout/PageIntro";
 import {
   BookOpen,
   BrainCircuit,
@@ -26,10 +27,7 @@ export async function WeeklyTipPage({ locale }: { locale: Locale }) {
     return (
       <div className="weekly-tip-page container">
         <PageHomeNavigation locale={locale} />
-        <span className="eyebrow">
-          {isHe ? "כלי קטן לשבוע הקרוב" : "أداة صغيرة للأسبوع القادم"}
-        </span>
-        <h1>{isHe ? "טיפ השבוע" : "نصيحة الأسبوع"}</h1>
+        <PageIntro eyebrow={isHe ? "כלי קטן לשבוע הקרוב" : "أداة صغيرة للأسبوع القادم"} title={isHe ? "טיפ השבוע" : "نصيحة الأسبوع"} />
         <section className="weekly-tip-empty">
           <Lightbulb aria-hidden="true" />
           <h2>
@@ -48,10 +46,7 @@ export async function WeeklyTipPage({ locale }: { locale: Locale }) {
   return (
     <div className="weekly-tip-page container">
       <PageHomeNavigation locale={locale} />
-      <span className="eyebrow">
-        {isHe ? "כלי קטן לשבוע הקרוב" : "أداة صغيرة للأسبوع القادم"}
-      </span>
-      <h1>{isHe ? "טיפ השבוע" : "نصيحة الأسبوع"}</h1>
+      <PageIntro eyebrow={isHe ? "כלי קטן לשבוע הקרוב" : "أداة صغيرة للأسبوع القادم"} title={isHe ? "טיפ השבוע" : "نصيحة الأسبوع"} />
       <article className="weekly-tip-feature">
         <div className="weekly-tip-icon">
           <Icon aria-hidden="true" size={33} />

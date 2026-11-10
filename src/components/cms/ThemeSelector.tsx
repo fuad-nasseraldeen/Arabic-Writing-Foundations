@@ -1,20 +1,17 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import type { Locale } from "@/i18n/config";
 import { saveTheme } from "@/app/[locale]/admin/actions";
-import { accentPresets, baseThemePresets, getColorTokens, textScaleTokens, type AccentPresetKey } from "./themePresets";
+import { textScaleTokens } from "./themePresets";
 import { fontPresets, type FontPresetKey } from "./fontPresets";
 
 function applyLocalTheme(
-  key: string,
   textScale: keyof typeof textScaleTokens,
   fontPreset: FontPresetKey,
-  accentPreset: AccentPresetKey,
 ) {
-  Object.entries(getColorTokens(key, accentPreset)).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
   const scale = textScaleTokens[textScale];
   Object.entries(scale).forEach(([name, value]) => document.documentElement.style.setProperty(`--text-${name === "display" ? "display" : name}`, value));
   const font = fontPresets[fontPreset];
@@ -22,66 +19,47 @@ function applyLocalTheme(
   document.documentElement.style.setProperty("--font-site-ar", font.ar);
 }
 
-export function ThemeSelector({ locale, activeTheme, activeTextScale, activeFontPreset, activeAccentPreset }: { locale: Locale; activeTheme: string; activeTextScale: keyof typeof textScaleTokens; activeFontPreset: FontPresetKey; activeAccentPreset: AccentPresetKey }) {
+export function ThemeSelector({ locale, activeTextScale, activeFontPreset }: { locale: Locale; activeTextScale: keyof typeof textScaleTokens; activeFontPreset: FontPresetKey }) {
   const router = useRouter();
-  const [active, setActive] = useState(activeTheme);
   const [activeScale, setActiveScale] = useState(activeTextScale);
   const [activeFont, setActiveFont] = useState(activeFontPreset);
-  const [activeAccent, setActiveAccent] = useState(activeAccentPreset);
-  const [selected, setSelected] = useState(activeTheme);
   const [textScale, setTextScale] = useState(activeTextScale);
   const [fontPreset, setFontPreset] = useState(activeFontPreset);
-  const [accentPreset, setAccentPreset] = useState(activeAccentPreset);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<"success" | "error" | null>(null);
-  const dirty = selected !== active || textScale !== activeScale || fontPreset !== activeFont || accentPreset !== activeAccent;
+  const dirty = textScale !== activeScale || fontPreset !== activeFont;
 
-  const selectTheme = (key: string) => {
-    if (saving) return;
-    setSelected(key);
-    applyLocalTheme(key, textScale, fontPreset, accentPreset);
-  };
   const selectTextScale = (scale: keyof typeof textScaleTokens) => {
     if (saving) return;
     setTextScale(scale);
-    applyLocalTheme(selected, scale, fontPreset, accentPreset);
+    applyLocalTheme(scale, fontPreset);
   };
   const selectFontPreset = (key: FontPresetKey) => {
     if (saving) return;
     setFontPreset(key);
-    applyLocalTheme(selected, textScale, key, accentPreset);
+    applyLocalTheme(textScale, key);
   };
-  const selectAccentPreset = (key: AccentPresetKey) => {
-    if (saving) return;
-    setAccentPreset(key);
-    applyLocalTheme(selected, textScale, fontPreset, key);
-  };
-
   const apply = async () => {
     if (!dirty || saving) return;
     setSaving(true);
     setNotice(null);
     try {
       const formData = new FormData();
-      formData.set("theme_key", selected);
+      formData.set("theme_key", "original");
       formData.set("text_scale", textScale);
       formData.set("font_preset", fontPreset);
-      formData.set("accent_preset", accentPreset);
+      formData.set("accent_preset", "teal");
       await saveTheme(locale, formData);
-      applyLocalTheme(selected, textScale, fontPreset, accentPreset);
-      setActive(selected);
+      applyLocalTheme(textScale, fontPreset);
       setActiveScale(textScale);
       setActiveFont(fontPreset);
-      setActiveAccent(accentPreset);
       setNotice("success");
       window.setTimeout(() => setNotice(null), 2800);
       router.refresh();
     } catch {
-      applyLocalTheme(active, activeScale, activeFont, activeAccent);
-      setSelected(active);
+      applyLocalTheme(activeScale, activeFont);
       setTextScale(activeScale);
       setFontPreset(activeFont);
-      setAccentPreset(activeAccent);
       setNotice("error");
     } finally {
       setSaving(false);
@@ -89,11 +67,9 @@ export function ThemeSelector({ locale, activeTheme, activeTextScale, activeFont
   };
   const cancel = () => {
     if (saving) return;
-    setSelected(active);
     setTextScale(activeScale);
     setFontPreset(activeFont);
-    setAccentPreset(activeAccent);
-    applyLocalTheme(active, activeScale, activeFont, activeAccent);
+    applyLocalTheme(activeScale, activeFont);
   };
 
   return <section className="theme-selector" aria-busy={saving}>
@@ -108,25 +84,6 @@ export function ThemeSelector({ locale, activeTheme, activeTextScale, activeFont
             <small>{isActive ? (locale === "he" ? "פעיל" : "نشط") : isSelected ? (locale === "he" ? "נבחר" : "مُختار") : (locale === "he" ? "לבחירה" : "للاختيار")}</small>
           </button>;
         })}
-      </div>
-    </div>
-    <div className="base-theme-setting">
-      <h2>{locale === "he" ? "ערכת עיצוב" : "قالب التصميم"}</h2>
-      <div className="theme-presets">
-      {Object.entries(baseThemePresets).map(([key, preset]) => {
-        const isActive = active === key;
-        const isSelected = selected === key;
-        return <button key={key} type="button" disabled={saving} onClick={() => selectTheme(key)} className={`theme-preview ${isSelected ? "selected" : ""} ${isActive ? "active-theme" : ""}`} style={{ "--preview-page": preset.tokens["--color-page"], "--preview-surface": preset.tokens["--color-surface"], "--preview-soft": preset.tokens["--color-surface-soft"] } as CSSProperties}>
-          <span className="preview-swatch" /><b>{locale === "he" ? preset.labelHe : preset.labelAr}</b>
-          {isActive ? <small className="theme-state active"><Check size={14} />{locale === "he" ? "פעיל" : "نشط"}</small> : isSelected ? <small className="theme-state selected"><Check size={14} />{locale === "he" ? "נבחר" : "مُختار"}</small> : <small>{locale === "he" ? "לבחירה" : "للاختيار"}</small>}
-        </button>;
-      })}
-      </div>
-    </div>
-    <div className="accent-setting">
-      <h2>{locale === "he" ? "צבע הדגשה" : "لون التمييز"}</h2>
-      <div className="accent-presets" role="radiogroup" aria-label={locale === "he" ? "בחירת צבע הדגשה" : "اختيار لون التمييز"}>
-        {Object.entries(accentPresets).map(([key, preset]) => <button key={key} type="button" role="radio" aria-checked={accentPreset === key} disabled={saving} onClick={() => selectAccentPreset(key as AccentPresetKey)} className={`accent-preset ${accentPreset === key ? "selected" : ""}`}><i style={{ background: preset.tokens["--color-accent"] }} /><span>{locale === "he" ? preset.labelHe : preset.labelAr}</span></button>)}
       </div>
     </div>
     <div className="theme-apply-row">
