@@ -16,6 +16,8 @@
 .header .nav-actions .nav-action-control { color: #fffdf5; }
 .header .language-switch { color: #e3e7d1; }
 .header .mobile-nav { background: #204e43; color: #fffdf5; border-color: #ffffff20; }
+.header .mobile-nav a { color: #fffdf5; border-color: #ffffff20; }
+.header .mobile-nav .language-switch button { color: #fffdf5; }
 .header .mobile-nav a[aria-current="page"] { background: #ffffff15; color: #fffdf5; }
 .header .user-dropdown { color: var(--color-text); }
 .hero {

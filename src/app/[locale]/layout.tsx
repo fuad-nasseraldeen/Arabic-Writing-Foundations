@@ -12,6 +12,7 @@ import "@/components/cms/card-content.css";
 import { CmsAdminProvider } from "@/components/cms/CmsAdminProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { NavigationProgress } from "@/components/navigation/NavigationProgress";
+import { ScrollToTop } from "@/components/navigation/ScrollToTop";
 import "@/components/navigation/navigation.css";
 import "../reference-design.css";
 export function generateStaticParams() {
@@ -55,6 +56,7 @@ export default async function LocaleLayout({
           <NavigationProgress />
         </Suspense>
         <Header locale={locale as Locale} />
+        <ScrollToTop />
         <main>{children}</main>
         <Footer locale={locale as Locale} />
       </div>
