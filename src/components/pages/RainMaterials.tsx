@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { BookOpen, CloudRain, FilePenLine, Lightbulb, Maximize2 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { Maximize2 } from "lucide-react";
+import { useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { rainMaterials, type RainMaterial } from "./rain-materials";
 import { DocumentPreview } from "@/components/worksheets/DocumentPreview";
@@ -11,21 +10,12 @@ import styles from "./RainMaterials.module.css";
 
 const translations = {
   he: {
-    guide: "חומר והנחיות", ideas: "רעיונות לפעילויות", worksheet: "דפי עבודה", story: "סיפור",
-    stage: "שלב", open: "פתיחה בגודל מלא", instruction: "בחרו חומר לעיון או דף עבודה לפתיחה ולהדפסה.",
+    stage: "שלב", open: "פתיחה בגודל מלא",
   },
   ar: {
-    guide: "مواد وإرشادات", ideas: "أفكار للأنشطة", worksheet: "أوراق عمل", story: "القصة",
-    stage: "المرحلة", open: "عرض بالحجم الكامل", instruction: "اختاروا مادة للاطلاع عليها أو ورقة عمل لفتحها وطباعتها.",
+    stage: "المرحلة", open: "عرض بالحجم الكامل",
   },
 };
-
-const sections = [
-  ["guide", BookOpen],
-  ["ideas", Lightbulb],
-  ["worksheet", FilePenLine],
-  ["story", CloudRain],
-] as const;
 
 function MaterialCard({ item, locale }: { item: RainMaterial; locale: Locale }) {
   const copy = translations[locale];
@@ -59,39 +49,6 @@ export function RainGuides({ locale }: { locale: Locale }) {
         {rainMaterials.filter((item) => item.kind === "guide").map((item) =>
           <MaterialCard key={item.id} item={item} locale={locale} />)}
       </ul>
-    </div>
-  );
-}
-
-export function RainMaterials({ locale, story }: { locale: Locale; story: ReactNode }) {
-  const copy = translations[locale];
-  const [active, setActive] = useState<"guide" | "ideas" | "story">("guide");
-  const visible = rainMaterials.filter((item) => item.kind === active);
-
-  return (
-    <div className={styles.library}>
-      <p className={styles.instruction}>{copy.instruction}</p>
-      <div className={styles.sections} role="group" aria-label={locale === "he" ? "סוג החומר" : "نوع المادة"}>
-        {sections.map(([id, Icon]) => id === "worksheet" ? (
-          <Link key={id} className={styles.section} href={`/${locale}/worksheets?letter-group=rain`}>
-            <Icon size={20} aria-hidden="true" />{copy[id]}
-          </Link>
-        ) : (
-          <button key={id} type="button" className={`nav-action-control ${styles.section}`}
-            aria-pressed={active === id} onClick={() => setActive(id)}>
-            <Icon size={20} aria-hidden="true" />{copy[id]}
-          </button>
-        ))}
-      </div>
-      {active === "story" ? story : (
-        <section aria-labelledby="rain-material-heading">
-          <h3 className={styles.heading} id="rain-material-heading">{copy[active]}</h3>
-          {locale === "ar" && <p className={styles.sourceLanguage}>تتضمّن المواد الأصلية تعليمات بالعبرية.</p>}
-          <ul className={styles.grid}>
-            {visible.map((item) => <MaterialCard key={item.id} item={item} locale={locale} />)}
-          </ul>
-        </section>
-      )}
     </div>
   );
 }

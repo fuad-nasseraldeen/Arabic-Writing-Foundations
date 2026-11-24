@@ -5,12 +5,13 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "@/i18n/config";
 import styles from "./DocumentPreview.module.css";
 
-export function DocumentPreviewButton({ children, className, locale, title, url }: {
+export function DocumentPreviewButton({ children, className, locale, title, url, pdf = true }: {
   children: ReactNode;
   className?: string;
   locale: Locale;
   title: string;
   url: string;
+  pdf?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -18,7 +19,7 @@ export function DocumentPreviewButton({ children, className, locale, title, url 
       <button type="button" className={`nav-action-control ${className || ""}`} onClick={() => setOpen(true)}>
         {children}
       </button>
-      {open && <DocumentPreview locale={locale} title={title} url={url} pdf onClose={() => setOpen(false)} />}
+      {open && <DocumentPreview locale={locale} title={title} url={url} pdf={pdf} onClose={() => setOpen(false)} />}
     </>
   );
 }
