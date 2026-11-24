@@ -4,13 +4,10 @@ import { t } from "@/i18n/dictionaries";
 import { LocalizedContentPage } from "@/components/pages/LocalizedContentPage";
 import { LocalizedWorksheetPage } from "@/components/pages/LocalizedWorksheetPage";
 import { WeeklyTipPage } from "@/components/pages/WeeklyTipPage";
+import { LetterGroupsPage } from "@/components/pages/LetterGroupsPage";
 import { isAdmin } from "@/lib/auth";
 import { isCmsEditMode } from "@/lib/cms-edit-mode";
 const entries = {
-  letters: {
-    he: ["מפת אותיות", "קבוצות חזותיות", "ניתוח אות"],
-    ar: ["خريطة الحروف", "مجموعات بصرية", "تحليل الحرف"],
-  },
   worksheets: {
     he: ["קווים קדם־כתיבתיים", "תרגול נקודות", "עקיבה אחר אות", "העתקה מדורגת"],
     ar: ["خطوط تمهيدية للكتابة", "تمارين النقاط", "تتبع الحرف", "نسخ متدرج"],
@@ -39,13 +36,19 @@ const entries = {
 } as const;
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; section: string }>;
+  searchParams: Promise<{ group?: string | string[] }>;
 }) {
   const { locale, section } = await params;
-  if (!isLocale(locale) || !(section in entries)) notFound();
+  if (!isLocale(locale) || (section !== "letters" && !Object.hasOwn(entries, section))) notFound();
   const editing = await isCmsEditMode();
   const admin = editing && await isAdmin();
+  if (section === "letters") {
+    const { group } = await searchParams;
+    return <LetterGroupsPage locale={locale} groupId={group} isAdmin={admin} />;
+  }
   if (section === "worksheets")
     return <LocalizedWorksheetPage locale={locale} isAdmin={admin} />;
   if (section === "weekly-tip") return <WeeklyTipPage locale={locale} />;

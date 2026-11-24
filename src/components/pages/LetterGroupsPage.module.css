@@ -1,0 +1,101 @@
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-end: 1.5rem;
+  color: #164a3a;
+  font-weight: 650;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  border-radius: 1.5rem;
+  background: #f5ecdf;
+  color: #164a3a;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.card:nth-child(3n + 2) { background: #eaeadd; }
+.card:nth-child(3n) { background: #fbecdb; }
+
+.card:hover {
+  box-shadow: 0 4px 16px #164a3a22;
+}
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card { padding: 0.55rem; }
+}
+
+.cover {
+  border-radius: 0.9rem;
+  overflow: hidden;
+  background: #fff;
+}
+
+.cover img,
+.storyGrid img,
+.overview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.card h2,
+.storyTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 750;
+}
+
+.heading {
+  margin-block: 0 1rem;
+  color: #164a3a;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  font-weight: 800;
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  align-items: start;
+  gap: 1rem;
+  margin-block: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.storyGrid li,
+.overview {
+  border-radius: 1rem;
+  padding: 0.6rem;
+  background: #f5ecdf;
+}
+
+.overview {
+  display: grid;
+  gap: 0.75rem;
+  width: min(100%, 36rem);
+}
+
+.overview,
+.document {
+  color: #164a3a;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
