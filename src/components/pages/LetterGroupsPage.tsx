@@ -10,11 +10,11 @@ import styles from "./LetterGroupsPage.module.css";
 
 const groups = [
   { id: "rain", he: "קבוצת הגשם", ar: "مجموعة المطر" },
-  { id: "wheel", he: "גלגל", ar: "عجلة" },
-  { id: "soup", he: "מרקיה", ar: "صحن الشوربة" },
-  { id: "slide", he: "מגלשה", ar: "زحليقة" },
-  { id: "butterfly", he: "פרפר", ar: "فراشة" },
-  { id: "egg", he: "ביצה", ar: "بيضة" },
+  { id: "wheel", he: "קבוצת הגלגל", ar: "مجموعة العجلة" },
+  { id: "soup", he: "קבוצת המרקיה", ar: "مجموعة صحن الشوربة" },
+  { id: "slide", he: "קבוצת המגלשה", ar: "مجموعة الزحليقة" },
+  { id: "butterfly", he: "קבוצת הפרפר", ar: "مجموعة الفراشة" },
+  { id: "egg", he: "קבוצת הביצה", ar: "مجموعة البيضة" },
   { id: "overview", he: "סיכום כל הקבוצות", ar: "ملخص مجموعات الحروف" },
 ] as const;
 
