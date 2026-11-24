@@ -77,6 +77,7 @@ export function WorksheetLibrary({ locale, data }: { locale: Locale; data: Works
     setParams(next);
   };
   const filtered = useMemo(() => data.worksheets.filter((worksheet) => {
+    if (locale === "ar" && (worksheet.sourceLocale === "he" || !worksheet.title_ar?.trim() || !worksheet.file_url)) return false;
     const ids = data.worksheetOptionIds[worksheet.id] || [];
     return groups.every((group) => {
       const key = params.get(group.key);
@@ -104,12 +105,10 @@ export function WorksheetLibrary({ locale, data }: { locale: Locale; data: Works
       <div className={styles.grid} style={{ "--desktop-columns": data.columns } as CSSProperties}>
         {filtered.map((worksheet) => {
           const labels = (data.worksheetOptionIds[worksheet.id] || []).map((id) => optionById.get(id)).filter(Boolean).map((option) => label(option!, locale));
-          const hebrewFallback = locale === "ar" && worksheet.sourceLocale === "he";
-          const previewLabel = hebrewFallback ? "عرض الورقة بالعبرية" : text(locale, "צפייה בדף העבודה", "عرض ورقة العمل");
+          const previewLabel = text(locale, "צפייה בדף העבודה", "عرض ورقة العمل");
           return <article className={`${styles.card} cms-editable-card`} key={worksheet.id}>{editing && isAdmin && !worksheet.bundled && <div className="inline-card-controls" style={{ display: "flex" }}><button type="button" onClick={() => setEditor(worksheet)} aria-label={text(locale, "עריכת דף עבודה", "تحرير ورقة عمل")}><Pencil size={16} /></button><button type="button" onClick={() => { setDeleteFile(true); setConfirm(worksheet); }} aria-label={text(locale, "מחיקת דף עבודה", "حذف ورقة عمل")}><Trash2 size={16} /></button></div>}
             <button type="button" className={styles.preview} onClick={() => setPreview(worksheet)} aria-label={previewLabel}>
-              {hebrewFallback ? <><FileText size={40} /><span>بالعبرية</span></> :
-                worksheet.thumbnail_url || (worksheet.file_type === "image" && worksheet.file_url)
+              {worksheet.thumbnail_url || (worksheet.file_type === "image" && worksheet.file_url)
                   ? <img src={worksheet.thumbnail_url || worksheet.file_url || undefined} alt="" loading="lazy" />
                   : <><FileText size={40} /><span>PDF</span></>}
             </button>

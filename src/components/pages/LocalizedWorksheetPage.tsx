@@ -6,5 +6,5 @@ import { Suspense } from "react";
 
 export async function LocalizedWorksheetPage({ locale, isAdmin }: { locale: Locale; isAdmin: boolean }) {
   const data = await getWorksheetLibrary(isAdmin);
-  return <Suspense fallback={null}><WorksheetLibrary locale={locale} data={withRainWorksheets(data)} isAdmin={isAdmin} /></Suspense>;
+  return <Suspense fallback={null}><WorksheetLibrary locale={locale} data={withRainWorksheets(data, locale)} isAdmin={isAdmin} /></Suspense>;
 }

@@ -1,5 +1,12 @@
 import { rainMaterials, rainStages } from "@/components/pages/rain-materials";
 import type { FilterGroup, FilterOption, Worksheet, WorksheetLibraryData } from "./worksheet-types";
+import type { Locale } from "@/i18n/config";
+
+const arabicWorksheets = new Set([
+  "stage-1-worksheet-1",
+  "stage-1-worksheet-2",
+  "stage-1-worksheet-3",
+]);
 
 const rainOption: FilterOption = {
   id: "bundled-letter-group-rain", group_id: "bundled-letter-group", key: "rain",
@@ -20,21 +27,25 @@ const stageGroup: FilterGroup = {
   })),
 };
 
-export function withRainWorksheets(data: WorksheetLibraryData): WorksheetLibraryData {
+export function withRainWorksheets(data: WorksheetLibraryData, locale: Locale): WorksheetLibraryData {
   const worksheetOptionIds = { ...data.worksheetOptionIds };
   const rainSheets: Worksheet[] = [];
   for (const item of rainMaterials) {
     if (item.kind !== "worksheet") continue;
     const id = `rain-${item.id}`;
+    if (locale === "ar" && !arabicWorksheets.has(item.id)) continue;
     const folder = `/letter-groups/rain/${item.id}`;
+    const arabicFile = `/letter-groups/rain/ar/${item.id}.png`;
     worksheetOptionIds[id] = [rainOption.id, stageGroup.options[item.stage - 1].id];
     rainSheets.push({
       id, title_he: item.he, title_ar: item.ar,
       description_he: null, description_ar: null,
       therapeutic_goal_he: null, therapeutic_goal_ar: null,
-      letter_group_id: null, thumbnail_url: `${folder}-preview.webp`, file_url: `${folder}.webp`,
+      letter_group_id: null,
+      thumbnail_url: locale === "ar" ? arabicFile : `${folder}-preview.webp`,
+      file_url: locale === "ar" ? arabicFile : `${folder}.webp`,
       file_type: "image", original_file_name: null, is_visible: true, sort_order: rainSheets.length,
-      created_at: "2026-11-24T00:00:00Z", updated_at: "2026-11-24T00:00:00Z", bundled: true, sourceLocale: "he",
+      created_at: "2026-11-24T00:00:00Z", updated_at: "2026-11-24T00:00:00Z", bundled: true,
     });
   }
   return {

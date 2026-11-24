@@ -31,8 +31,7 @@ export function LetterGroupSearch({ locale, groups }: {
       <label htmlFor={id}>{he ? "חיפוש קבוצה לפי אות" : "البحث عن مجموعة حسب الحرف"}</label>
       <div className={styles.letterSearchControl}>
         <input id={id} type="search" value={query} onChange={(event) => setQuery(event.target.value)}
-          dir="auto" autoComplete="off" maxLength={32}
-          placeholder={he ? "למשל ב או ب" : "مثل ب أو باء"} />
+          dir="auto" autoComplete="off" maxLength={32} />
         <button type="submit" className="nav-action-control" disabled={!href}>
           <Search size={17} aria-hidden="true" />
           {he ? "הצגת הקבוצה" : "عرض المجموعة"}
