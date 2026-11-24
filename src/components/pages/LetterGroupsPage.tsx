@@ -6,6 +6,7 @@ import { t } from "@/i18n/dictionaries";
 import { getPageCms, local } from "@/lib/cms";
 import { LetterReadingPage } from "./LetterReadingPage";
 import { RainReadingSequence } from "./RainReadingSequence";
+import { LetterGroupSearch } from "./LetterGroupSearch";
 import styles from "./LetterGroupsPage.module.css";
 
 const groups = [
@@ -59,6 +60,7 @@ export async function LetterGroupsPage({
           </>
         ) : <span aria-current="page">{title}</span>}
       </nav>
+      <LetterGroupSearch locale={locale} groups={groups} />
       <nav className={styles.readerActions} aria-label={isHe ? "בחירת קבוצה" : "اختيار المجموعة"}>
         {group && <Link href={root}>{allLabel}</Link>}
         {!group && <Link href={`/${locale}/worksheets`}>{isHe ? "דפי עבודה" : "أوراق عمل"}</Link>}

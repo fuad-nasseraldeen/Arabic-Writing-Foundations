@@ -1,0 +1,26 @@
+const aliasesByGroup = {
+  rain: ["ا א ألف אלף", "ب ב باء בא", "ت ת تاء תא", "ث ת׳ ثاء ת׳א", "ك ک כ ך كاف כאף", "ل ל لام לאם"],
+  wheel: ["م מ ם ميم מים", "و ו واو ואו", "ه ה هاء הא", "ف פ ף فاء פא", "ق ק قاف קאף"],
+  soup: ["ن נ ן نون נון", "س ס سين סין", "ش ש شין شين"],
+  slide: ["ر ר راء רא", "ز ז زاي زاء זאי", "د ד دال דאל", "ذ ד׳ ذال ד׳אל"],
+  butterfly: ["ج ג ג׳ جيم ג׳ים", "ح ח حاء חא", "خ ח׳ خاء ח׳א", "ع ע عين עין", "غ ע׳ غين ע׳ין", "ي ی י ياء יא"],
+  egg: ["ص צ ץ صاد צאד", "ض דֿ ضاد דאד", "ط ט طاء טא", "ظ ט׳ ظاء ט׳א"],
+} as const;
+
+function normalizeLetter(value: string) {
+  return value.normalize("NFKD")
+    .replace(/דֿ/g, "ض")
+    .replace(/[\p{M}ـ]/gu, "")
+    .replace(/['’‘`]/g, "׳")
+    .trim()
+    .replace(/^(?:אות|حرف)\s+/u, "");
+}
+
+const groupByAlias = new Map(
+  Object.entries(aliasesByGroup).flatMap(([group, letters]) =>
+    letters.flatMap((aliases) => aliases.split(" ").map((alias) => [normalizeLetter(alias), group] as const))),
+);
+
+export function findLetterGroup(value: string) {
+  return groupByAlias.get(normalizeLetter(value));
+}

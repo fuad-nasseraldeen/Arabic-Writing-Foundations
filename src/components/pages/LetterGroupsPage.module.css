@@ -10,6 +10,44 @@
 
 .breadcrumb { font-weight: 650; }
 
+.letterSearch {
+  display: grid;
+  gap: 0.45rem;
+  max-width: 32rem;
+  margin-block-end: 1.25rem;
+  color: #164a3a;
+}
+
+.letterSearch label { font-weight: 750; }
+.letterSearchControl { display: flex; gap: 0.5rem; }
+.letterSearchControl input {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding-inline: 0.75rem;
+  border: 1px solid #c9d6cc;
+  border-radius: 0.7rem;
+  background: #fff;
+  font: inherit;
+}
+
+.letterSearchControl button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-inline: 0.75rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: #205b49;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.letterSearchControl button:disabled { opacity: 0.55; cursor: default; }
+.letterSearch a { color: inherit; font-weight: 750; text-decoration: underline; }
+
 .readerActions a,
 .readerShortcut {
   display: inline-flex;
