@@ -27,7 +27,22 @@ const stageGroup: FilterGroup = {
   })),
 };
 
+function mergeFilterGroup(bundled: FilterGroup, existing?: FilterGroup): FilterGroup {
+  if (!existing) return bundled;
+  const options = [...existing.options];
+  for (const option of bundled.options) {
+    if (!options.some(({ key }) => key === option.key)) {
+      options.push({ ...option, group_id: existing.id });
+    }
+  }
+  return { ...existing, options };
+}
+
 export function withRainWorksheets(data: WorksheetLibraryData, locale: Locale): WorksheetLibraryData {
+  const letterGroupFilter = mergeFilterGroup(group, data.filterGroups.find(({ key }) => key === group.key));
+  const stageFilter = mergeFilterGroup(stageGroup, data.filterGroups.find(({ key }) => key === stageGroup.key));
+  const rainOptionId = letterGroupFilter.options.find(({ key }) => key === rainOption.key)!.id;
+  const stageOptionIds = new Map(stageFilter.options.map(({ key, id }) => [key, id]));
   const worksheetOptionIds = { ...data.worksheetOptionIds };
   const rainSheets: Worksheet[] = [];
   for (const item of rainMaterials) {
@@ -36,7 +51,7 @@ export function withRainWorksheets(data: WorksheetLibraryData, locale: Locale): 
     if (locale === "ar" && !arabicWorksheets.has(item.id)) continue;
     const folder = `/letter-groups/rain/${item.id}`;
     const arabicFile = `/letter-groups/rain/ar/${item.id}.png`;
-    worksheetOptionIds[id] = [rainOption.id, stageGroup.options[item.stage - 1].id];
+    worksheetOptionIds[id] = [rainOptionId, stageOptionIds.get(String(item.stage))!];
     rainSheets.push({
       id, title_he: item.he, title_ar: item.ar,
       description_he: null, description_ar: null,
@@ -49,6 +64,9 @@ export function withRainWorksheets(data: WorksheetLibraryData, locale: Locale): 
     });
   }
   return {
-    ...data, worksheets: [...rainSheets, ...data.worksheets], filterGroups: [group, stageGroup, ...data.filterGroups], worksheetOptionIds,
+    ...data,
+    worksheets: [...rainSheets, ...data.worksheets],
+    filterGroups: [letterGroupFilter, stageFilter, ...data.filterGroups.filter(({ key }) => key !== group.key && key !== stageGroup.key)],
+    worksheetOptionIds,
   };
 }

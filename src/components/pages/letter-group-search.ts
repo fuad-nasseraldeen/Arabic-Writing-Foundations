@@ -16,11 +16,21 @@ function normalizeLetter(value: string) {
     .replace(/^(?:אות|حرف)\s+/u, "");
 }
 
-const groupByAlias = new Map(
+const letterByAlias = new Map(
   Object.entries(aliasesByGroup).flatMap(([group, letters]) =>
-    letters.flatMap((aliases) => aliases.split(" ").map((alias) => [normalizeLetter(alias), group] as const))),
+    letters.flatMap((aliases) => {
+      const names = aliases.split(" ");
+      const letter = names[0];
+      const name = names.find((alias) => /^\p{Script=Arabic}{2,}$/u.test(alias))!;
+      const result = { letter, name, group };
+      return [...names, `ال${name}`].map((alias) => [normalizeLetter(alias), result] as const);
+    })),
 );
 
+export function findLetter(value: string) {
+  return letterByAlias.get(normalizeLetter(value));
+}
+
 export function findLetterGroup(value: string) {
-  return groupByAlias.get(normalizeLetter(value));
+  return findLetter(value)?.group;
 }

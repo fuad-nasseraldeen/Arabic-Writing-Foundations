@@ -7,6 +7,7 @@ import { getPageCms, local } from "@/lib/cms";
 import { LetterReadingPage } from "./LetterReadingPage";
 import { RainReadingSequence } from "./RainReadingSequence";
 import { LetterGroupSearch } from "./LetterGroupSearch";
+import { ArabicLetterSearch } from "./ArabicLetterSearch";
 import { LetterBackToTop } from "./LetterBackToTop";
 import styles from "./LetterGroupsPage.module.css";
 
@@ -23,17 +24,25 @@ const groups = [
 export async function LetterGroupsPage({
   locale,
   groupId,
+  view,
   isAdmin,
 }: {
   locale: Locale;
   groupId?: string | string[];
+  view?: string | string[];
   isAdmin: boolean;
 }) {
-  const group = groups.find(({ id }) => id === groupId);
+  const byLetter = view === "letter";
+  const group = byLetter ? undefined : groups.find(({ id }) => id === groupId);
   const { sections: [section] } = await getPageCms("letters", isAdmin);
   const title = (section && local(section, "title", locale)) || t(locale).nav.letters;
   const isHe = locale === "he";
   const root = `/${locale}/letters`;
+  const byGroup = view === "group";
+  const byStage = view === "stage";
+  const fullView = !byLetter && !byGroup && !byStage;
+  const viewRoot = fullView ? root : `${root}?view=${view}`;
+  const viewTitle = byLetter ? t(locale).home.byLetter : byGroup ? t(locale).home.byGroup : byStage ? t(locale).home.byStage : title;
   const media = isHe ? "/letter-groups/he" : "/letter-groups";
   const storyLabel = isHe ? "סיפורי הדמיה" : "قصص تخيّلية";
   const allLabel = isHe ? "כל הקבוצות ברצף" : "كل المجموعات بالتسلسل";
@@ -44,9 +53,9 @@ export async function LetterGroupsPage({
     <div className="page-shell container cms-section content-page" id="letter-page-top" tabIndex={-1}>
       {isAdmin && section && <InlineSectionEditor locale={locale} section={section} />}
       <PageIntro
-        title={title}
+        title={viewTitle}
         eyebrow={isHe ? "המדריך המקצועי" : "الدليل المهني"}
-        description={section ? local(section, "subtitle", locale) : undefined}
+        description={fullView && section ? local(section, "subtitle", locale) : undefined}
       />
       <nav className={styles.breadcrumb} aria-label={isHe ? "ניווט עמוד" : "تنقل الصفحة"}>
         <Link className="text-nav-action" href={`/${locale}`}>
@@ -55,44 +64,58 @@ export async function LetterGroupsPage({
         <span aria-hidden="true">‹</span>
         {group ? (
           <>
-            <Link className="text-nav-action" href={root}>{title}</Link>
+            <Link className="text-nav-action" href={viewRoot}>{viewTitle}</Link>
             <span aria-hidden="true">‹</span>
             <span aria-current="page">{group[locale]}</span>
           </>
-        ) : <span aria-current="page">{title}</span>}
+        ) : <span aria-current="page">{viewTitle}</span>}
       </nav>
-      <LetterGroupSearch locale={locale} groups={groups} />
-      <nav className={styles.readerActions} aria-label={isHe ? "בחירת קבוצה" : "اختيار المجموعة"}>
-        {group && <Link href={root}>{allLabel}</Link>}
-        {!group && <Link href={`/${locale}/worksheets`}>{isHe ? "דפי עבודה" : "أوراق عمل"}</Link>}
-        {groups.map((item) => (
-          <Link key={item.id} href={`${root}?group=${item.id}`}
-            aria-current={group?.id === item.id ? "page" : undefined}>
-            {item[locale]}
-          </Link>
-        ))}
-      </nav>
-      {!group && <h2 className={styles.readerTitle}>{allLabel}</h2>}
-      <div className={styles.reader}>
-        {readingGroups.map((item) => {
-          const headingId = `group-${item.id}`;
-          const main = <LetterReadingPage locale={locale} title={firstPage}
-            image={`${media}/${item.id}-main.webp`} />;
-          const story = <LetterReadingPage locale={locale} title={storyLabel}
-            image={`${media}/${item.id}-story.webp`} document={`${media}/${item.id}-story.pdf`} />;
-          return (
-            <section key={item.id} className={styles.readerGroup} aria-labelledby={headingId}>
-              <h2 className={styles.heading} id={headingId}>{item[locale]}</h2>
-              {item.id === "overview" ? (
-                <LetterReadingPage locale={locale} title={item[locale]}
-                  image={`${media}/overview.webp`} document={`${media}/overview.pdf`} />
-              ) : item.id === "rain" ? (
-                <RainReadingSequence locale={locale} main={main} story={story} />
-              ) : <>{main}{story}</>}
-            </section>
-          );
-        })}
-      </div>
+      {byLetter && <ArabicLetterSearch locale={locale} />}
+      {fullView && <LetterGroupSearch locale={locale} groups={groups} />}
+      {(fullView || byGroup || byStage) && (
+        <nav className={styles.readerActions} aria-label={isHe ? "בחירת קבוצה" : "اختيار المجموعة"}>
+          {fullView && group && <Link href={root}>{allLabel}</Link>}
+          {fullView && !group && <Link href={`/${locale}/worksheets`}>{isHe ? "דפי עבודה" : "أوراق عمل"}</Link>}
+          {groups.filter((item) => !byStage || item.id !== "overview").map((item) => (
+            <Link key={item.id} href={`${viewRoot}${fullView ? "?" : "&"}group=${item.id}`}
+              aria-current={group?.id === item.id ? "page" : undefined}>
+              {item[locale]}
+            </Link>
+          ))}
+        </nav>
+      )}
+      {byStage && group && group.id !== "overview" && (
+        <nav className={styles.readerActions} aria-label={isHe ? "בחירת שלב" : "اختيار المرحلة"}>
+          {[1, 2, 3].map((stage) => (
+            <Link key={stage} href={`/${locale}/worksheets?letter-group=${group.id}&stage=${stage}`}>
+              {isHe ? "שלב" : "المرحلة"} {stage}
+            </Link>
+          ))}
+        </nav>
+      )}
+      {fullView && !group && <h2 className={styles.readerTitle}>{allLabel}</h2>}
+      {(fullView || (group && !byStage)) && (
+        <div className={styles.reader}>
+          {readingGroups.map((item) => {
+            const headingId = `group-${item.id}`;
+            const main = <LetterReadingPage locale={locale} title={firstPage}
+              image={`${media}/${item.id}-main.webp`} />;
+            const story = <LetterReadingPage locale={locale} title={storyLabel}
+              image={`${media}/${item.id}-story.webp`} document={`${media}/${item.id}-story.pdf`} />;
+            return (
+              <section key={item.id} className={styles.readerGroup} aria-labelledby={headingId}>
+                <h2 className={styles.heading} id={headingId}>{item[locale]}</h2>
+                {item.id === "overview" ? (
+                  <LetterReadingPage locale={locale} title={item[locale]}
+                    image={`${media}/overview.webp`} document={`${media}/overview.pdf`} />
+                ) : item.id === "rain" ? (
+                  <RainReadingSequence locale={locale} main={main} story={story} />
+                ) : <>{main}{story}</>}
+              </section>
+            );
+          })}
+        </div>
+      )}
       <LetterBackToTop locale={locale} />
     </div>
   );

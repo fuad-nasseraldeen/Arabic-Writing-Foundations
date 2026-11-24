@@ -48,6 +48,20 @@
 .letterSearchControl button:disabled { opacity: 0.55; cursor: default; }
 .letterSearch a { color: inherit; font-weight: 750; text-decoration: underline; }
 
+.letterResult {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0.6rem 0 0;
+  padding: 0.6rem 1rem;
+  border: 1px solid #c9d6cc;
+  border-radius: 0.7rem;
+  background: #f7faf5;
+}
+
+.letterResult strong { font-size: 2.5rem; }
+
 .readerActions a,
 .readerShortcut {
   display: inline-flex;
@@ -65,6 +79,18 @@
 .readerActions a:hover,
 .readerShortcut:hover { background: #e5efe7; }
 .readerActions a[aria-current] { background: #205b49; color: #fff; }
+
+@media (max-width: 680px) {
+  .readerActions { justify-content: center; }
+
+  .readerActions a {
+    flex: 0 1 calc((100% - 0.5rem) / 2);
+    justify-content: center;
+    padding-inline: 0.35rem;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+}
 
 .readerTitle {
   margin: 1.5rem 0 1rem;

@@ -39,15 +39,15 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ locale: string; section: string }>;
-  searchParams: Promise<{ group?: string | string[]; collection?: string | string[] }>;
+  searchParams: Promise<{ group?: string | string[]; view?: string | string[] }>;
 }) {
   const { locale, section } = await params;
   if (!isLocale(locale) || (section !== "letters" && !Object.hasOwn(entries, section))) notFound();
   const editing = await isCmsEditMode();
   const admin = editing && await isAdmin();
   if (section === "letters") {
-    const { group } = await searchParams;
-    return <LetterGroupsPage locale={locale} groupId={group} isAdmin={admin} />;
+    const { group, view } = await searchParams;
+    return <LetterGroupsPage locale={locale} groupId={group} view={view} isAdmin={admin} />;
   }
   if (section === "worksheets")
     return <LocalizedWorksheetPage locale={locale} isAdmin={admin} />;
@@ -63,7 +63,6 @@ export default async function Page({
       items={[...entries[section as keyof typeof entries][locale]]}
       pageKey={section}
       isAdmin={admin}
-      collection={section === "resources" ? (await searchParams).collection : undefined}
     />
   );
 }

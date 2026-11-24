@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Layers, ListOrdered, Search } from "lucide-react";
 import type { CSSProperties } from "react";
 import { t } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
@@ -32,6 +32,12 @@ export async function LocalizedHome({
   isAdmin?: boolean;
 }) {
   const dictionary = t(locale);
+  const { home } = dictionary;
+  const modes = [
+    { view: "letter", title: home.byLetter, description: home.letterDescription, Icon: Search },
+    { view: "group", title: home.byGroup, description: home.groupDescription, Icon: Layers },
+    { view: "stage", title: home.byStage, description: home.stageDescription, Icon: ListOrdered },
+  ];
   const { sections, items } = await getPageCms("home", isAdmin);
   const byKey = (key: string) =>
     sections.find((section) => section.key === key);
@@ -110,34 +116,31 @@ export async function LocalizedHome({
         </section>
       )}
 
-      {explore && (
+      {(!explore || explore.is_visible || isAdmin) && (
         <section className="explore container cms-section">
-          <InlineSectionEditor locale={locale} section={explore} />
-          <GridSettings locale={locale} section={explore} />
+          {explore && <GridSettings locale={locale} section={explore} />}
           <div className="section-intro">
             <span className="eyebrow">{dictionary.home.guide}</span>
-            <h2>{local(explore, "title", locale)}</h2>
-            <p>{local(explore, "subtitle", locale)}</p>
+            <h2>{home.threeWays}</h2>
           </div>
           <div
             className="explore-grid home-explore-grid cms-card-grid"
-            style={gridStyle(explore)}
+            style={explore ? gridStyle(explore) : undefined}
           >
-            {itemsFor(explore).map((item) => {
-              return (
-                <CmsCard
-                  key={item.id}
-                  item={item}
-                  locale={locale}
-                  adminControls={<InlineItemEditor locale={locale} item={item} />}
-                />
-              );
-            })}
-            <AddItemCard
-              locale={locale}
-              sectionId={explore.id}
-              label={locale === "he" ? "הוסף דרך" : "إضافة مسار"}
-            />
+            {modes.map(({ view, title, description, Icon }) => (
+              <article key={view} className="cms-card cms-card--interactive">
+                <Link className="cms-card__surface" href={`/${locale}/letters?view=${view}`}>
+                  <div className="cms-card__main">
+                    <Icon size={24} aria-hidden="true" />
+                    <h3 className="card-content__title">{title}</h3>
+                    <p>{description}</p>
+                  </div>
+                  <div className="cms-card__footer">
+                    <span className="button">{home.openMode}</span>
+                  </div>
+                </Link>
+              </article>
+            ))}
           </div>
         </section>
       )}

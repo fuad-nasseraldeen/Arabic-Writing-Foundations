@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Locale } from "@/i18n/config";
@@ -34,14 +34,16 @@ function DrilldownCard({
   childItems,
   onOpen,
   forceGroup,
+  mobileLast,
 }: {
   item: SiteItem;
   locale: Locale;
   childItems: SiteItem[];
   onOpen: (item: SiteItem) => void;
   forceGroup: boolean;
+  mobileLast: boolean;
 }) {
-  return <CmsCard item={item} locale={locale} childCount={childItems.length} onOpenGroup={() => onOpen(item)} forceGroup={forceGroup} className={`drilldown-card ${item.variant || "default"}`} adminControls={<InlineItemEditor locale={locale} item={item} childItems={childItems} />} />;
+  return <CmsCard item={item} locale={locale} childCount={childItems.length} onOpenGroup={() => onOpen(item)} forceGroup={forceGroup} className={`drilldown-card ${item.variant || "default"}${mobileLast ? " mobile-last-card" : ""}`} adminControls={<InlineItemEditor locale={locale} item={item} childItems={childItems} />} />;
 }
 
 export function ExpandableCardGrid({
@@ -52,7 +54,7 @@ export function ExpandableCardGrid({
   sectionId,
   rootLabel,
   emptyItemsAreGroups = false,
-  rootCard,
+  mobileLastItemId,
 }: {
   locale: Locale;
   items: SiteItem[];
@@ -62,7 +64,7 @@ export function ExpandableCardGrid({
   rootLabel: string;
   /** A collection of groups may open an empty group before it has child content. */
   emptyItemsAreGroups?: boolean;
-  rootCard?: ReactNode;
+  mobileLastItemId?: string;
 }) {
   const editing = useCmsEditMode(),
     l = copy[locale];
@@ -180,7 +182,6 @@ export function ExpandableCardGrid({
           } as React.CSSProperties
         }
       >
-        {!currentId && rootCard}
         {visible.map((item) => (
           <DrilldownCard
             key={item.id}
@@ -191,6 +192,7 @@ export function ExpandableCardGrid({
             )}
             onOpen={(node) => navigate(node.id, "forward")}
             forceGroup={emptyItemsAreGroups && !currentId}
+            mobileLast={item.id === mobileLastItemId}
           />
         ))}
         {editing && (
@@ -202,7 +204,7 @@ export function ExpandableCardGrid({
           />
         )}
       </div>
-      {!visible.length && !editing && (currentId || !rootCard) && (
+      {!visible.length && !editing && (
         <p className="drilldown-empty">{l.empty}</p>
       )}
     </section>

@@ -1753,3 +1753,9 @@ main {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+@media (max-width: 680px) {
+  .content-page--resources .mobile-last-card { order: 1; }
+}
+
+.home-explore-grid .cms-card__footer { justify-content: center; }
