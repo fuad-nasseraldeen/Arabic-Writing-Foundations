@@ -7,6 +7,7 @@ import { getPageCms, local } from "@/lib/cms";
 import { LetterReadingPage } from "./LetterReadingPage";
 import { RainReadingSequence } from "./RainReadingSequence";
 import { LetterGroupSearch } from "./LetterGroupSearch";
+import { LetterBackToTop } from "./LetterBackToTop";
 import styles from "./LetterGroupsPage.module.css";
 
 const groups = [
@@ -40,7 +41,7 @@ export async function LetterGroupsPage({
   const readingGroups = group ? [group] : groups;
 
   return (
-    <div className="page-shell container cms-section content-page">
+    <div className="page-shell container cms-section content-page" id="letter-page-top" tabIndex={-1}>
       {isAdmin && section && <InlineSectionEditor locale={locale} section={section} />}
       <PageIntro
         title={title}
@@ -92,6 +93,7 @@ export async function LetterGroupsPage({
           );
         })}
       </div>
+      <LetterBackToTop locale={locale} />
     </div>
   );
 }
