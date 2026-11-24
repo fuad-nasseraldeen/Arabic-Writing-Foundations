@@ -9,11 +9,11 @@ import { RainReadingSequence } from "./RainReadingSequence";
 import styles from "./LetterGroupsPage.module.css";
 
 const groups = [
+  { id: "rain", he: "קבוצת הגשם", ar: "مجموعة المطر" },
   { id: "wheel", he: "גלגל", ar: "عجلة" },
   { id: "soup", he: "מרקיה", ar: "صحن الشوربة" },
   { id: "slide", he: "מגלשה", ar: "زحليقة" },
   { id: "butterfly", he: "פרפר", ar: "فراشة" },
-  { id: "rain", he: "קבוצת הגשם", ar: "مجموعة المطر" },
   { id: "egg", he: "ביצה", ar: "بيضة" },
   { id: "overview", he: "סיכום כל הקבוצות", ar: "ملخص مجموعات الحروف" },
 ] as const;
