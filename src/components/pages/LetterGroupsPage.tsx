@@ -5,6 +5,7 @@ import { PageIntro } from "@/components/layout/PageIntro";
 import type { Locale } from "@/i18n/config";
 import { t } from "@/i18n/dictionaries";
 import { getPageCms, local } from "@/lib/cms";
+import { RainMaterials } from "./RainMaterials";
 import styles from "./LetterGroupsPage.module.css";
 
 const groups = [
@@ -33,6 +34,30 @@ export async function LetterGroupsPage({
   const root = `/${locale}/letters`;
   const storyLabel = isHe ? "סיפור" : "القصة";
   const overview = group?.id === "overview";
+  const groupTitle = group?.id === "rain"
+    ? (isHe ? "קבוצת הגשם" : "مجموعة المطر")
+    : group?.[locale];
+  const story = group && group.id !== "overview" && (
+    <>
+      <h3 className={styles.storyTitle}>{storyLabel}</h3>
+      <ul className={styles.storyGrid} lang="ar">
+        {group.letters.map((letter, index) => (
+          <li key={letter}>
+            <Image
+              src={`/letter-groups/${group.id}-story-${index + 1}.webp`}
+              alt={`قصة حرف ${letter}`}
+              width={group.storySize[0]}
+              height={group.storySize[1]}
+              unoptimized
+            />
+          </li>
+        ))}
+      </ul>
+      <a href={`/letter-groups/${group.id}-story.pdf`} className={styles.document}>
+        {isHe ? "פתיחת הסיפור המלא כ־PDF" : "فتح القصة كاملة بصيغة PDF"}
+      </a>
+    </>
+  );
 
   return (
     <div className="page-shell container cms-section content-page">
@@ -51,13 +76,13 @@ export async function LetterGroupsPage({
           <>
             <Link className="text-nav-action" href={root}>{title}</Link>
             <span aria-hidden="true">‹</span>
-            <span aria-current="page">{group[locale]}</span>
+            <span aria-current="page">{groupTitle}</span>
           </>
         ) : <span aria-current="page">{title}</span>}
       </nav>
       {group ? (
         <section aria-labelledby="letter-group-title">
-          <h2 className={styles.heading} id="letter-group-title">{group[locale]}</h2>
+          <h2 className={styles.heading} id="letter-group-title">{groupTitle}</h2>
           {overview ? (
             <a href="/letter-groups/overview.pdf" className={styles.overview}>
               <Image
@@ -69,27 +94,7 @@ export async function LetterGroupsPage({
               />
               <span>{isHe ? "פתיחת הסיכום כ־PDF" : "فتح الملخص بصيغة PDF"}</span>
             </a>
-          ) : (
-            <>
-              <h3 className={styles.storyTitle}>{storyLabel}</h3>
-              <ul className={styles.storyGrid} lang="ar">
-                {group.letters.map((letter, index) => (
-                  <li key={letter}>
-                    <Image
-                      src={`/letter-groups/${group.id}-story-${index + 1}.webp`}
-                      alt={`قصة حرف ${letter}`}
-                      width={group.storySize[0]}
-                      height={group.storySize[1]}
-                      unoptimized
-                    />
-                  </li>
-                ))}
-              </ul>
-              <a href={`/letter-groups/${group.id}-story.pdf`} className={styles.document}>
-                {isHe ? "פתיחת הסיפור המלא כ־PDF" : "فتح القصة كاملة بصيغة PDF"}
-              </a>
-            </>
-          )}
+          ) : group.id === "rain" ? <RainMaterials locale={locale} story={story} /> : story}
         </section>
       ) : (
         <section aria-label={title} className={styles.grid}>
@@ -97,12 +102,14 @@ export async function LetterGroupsPage({
             <Link key={item.id} href={`${root}?group=${item.id}`} className={styles.card}>
               <div className={styles.cover}>
                 <Image
-                  src={item.id === "overview"
-                    ? "/letter-groups/overview.webp"
-                    : `/letter-groups/${item.id}-main.webp`}
+                  src={item.id === "rain" && isHe
+                    ? "/letter-groups/rain/main.webp"
+                    : item.id === "overview"
+                      ? "/letter-groups/overview.webp"
+                      : `/letter-groups/${item.id}-main.webp`}
                   alt=""
-                  width={923}
-                  height={1305}
+                  width={item.id === "rain" && isHe ? 1414 : 923}
+                  height={item.id === "rain" && isHe ? 2000 : 1305}
                   unoptimized
                 />
               </div>
