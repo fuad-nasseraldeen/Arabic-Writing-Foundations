@@ -39,7 +39,7 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ locale: string; section: string }>;
-  searchParams: Promise<{ group?: string | string[] }>;
+  searchParams: Promise<{ group?: string | string[]; collection?: string | string[] }>;
 }) {
   const { locale, section } = await params;
   if (!isLocale(locale) || (section !== "letters" && !Object.hasOwn(entries, section))) notFound();
@@ -63,6 +63,7 @@ export default async function Page({
       items={[...entries[section as keyof typeof entries][locale]]}
       pageKey={section}
       isAdmin={admin}
+      collection={section === "resources" ? (await searchParams).collection : undefined}
     />
   );
 }

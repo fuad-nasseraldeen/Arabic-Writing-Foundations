@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Locale } from "@/i18n/config";
@@ -52,6 +52,7 @@ export function ExpandableCardGrid({
   sectionId,
   rootLabel,
   emptyItemsAreGroups = false,
+  rootCard,
 }: {
   locale: Locale;
   items: SiteItem[];
@@ -61,6 +62,7 @@ export function ExpandableCardGrid({
   rootLabel: string;
   /** A collection of groups may open an empty group before it has child content. */
   emptyItemsAreGroups?: boolean;
+  rootCard?: ReactNode;
 }) {
   const editing = useCmsEditMode(),
     l = copy[locale];
@@ -178,6 +180,7 @@ export function ExpandableCardGrid({
           } as React.CSSProperties
         }
       >
+        {!currentId && rootCard}
         {visible.map((item) => (
           <DrilldownCard
             key={item.id}
@@ -199,7 +202,7 @@ export function ExpandableCardGrid({
           />
         )}
       </div>
-      {!visible.length && !editing && (
+      {!visible.length && !editing && (currentId || !rootCard) && (
         <p className="drilldown-empty">{l.empty}</p>
       )}
     </section>

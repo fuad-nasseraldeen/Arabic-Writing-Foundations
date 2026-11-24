@@ -53,6 +53,18 @@ function MaterialCard({ item, locale }: { item: RainMaterial; locale: Locale }) 
   );
 }
 
+export function RainGuides({ locale }: { locale: Locale }) {
+  return (
+    <div className={styles.library}>
+      {locale === "ar" && <p className={styles.sourceLanguage}>تتضمّن المواد الأصلية تعليمات بالعبرية.</p>}
+      <ul className={styles.grid}>
+        {rainMaterials.filter((item) => item.kind === "guide").map((item) =>
+          <MaterialCard key={item.id} item={item} locale={locale} />)}
+      </ul>
+    </div>
+  );
+}
+
 export function RainMaterials({ locale, story }: { locale: Locale; story: ReactNode }) {
   const copy = translations[locale];
   const [active, setActive] = useState<(typeof sections)[number][0]>("guide");
