@@ -99,3 +99,14 @@
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
+
+button.document,
+button.overview {
+  border: 0;
+  font: inherit;
+  font-weight: 650;
+  text-align: start;
+  cursor: pointer;
+}
+
+button.document { padding: 0; background: transparent; }

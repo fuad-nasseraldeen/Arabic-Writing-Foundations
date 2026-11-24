@@ -71,8 +71,10 @@ export function Header({
     closeMobileNav();
     const parts = path.split("/");
     parts[1] = to;
+    const destination = parts.join("/") || `/${to}`;
+    const preserveQuery = parts.length === 3 && ["letters", "worksheets", "resources"].includes(parts[2]);
     startNavigationProgress();
-    router.push(parts.join("/") || `/${to}`);
+    router.push(preserveQuery ? destination + window.location.search : destination);
   };
   const links = [
       "home",

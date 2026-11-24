@@ -6,6 +6,7 @@ import type { Locale } from "@/i18n/config";
 import { t } from "@/i18n/dictionaries";
 import { getPageCms, local } from "@/lib/cms";
 import { RainMaterials } from "./RainMaterials";
+import { DocumentPreviewButton } from "@/components/worksheets/DocumentPreview";
 import styles from "./LetterGroupsPage.module.css";
 
 const groups = [
@@ -32,6 +33,7 @@ export async function LetterGroupsPage({
   const title = (section && local(section, "title", locale)) || t(locale).nav.letters;
   const isHe = locale === "he";
   const root = `/${locale}/letters`;
+  const media = isHe ? "/letter-groups/he" : "/letter-groups";
   const storyLabel = isHe ? "סיפור" : "القصة";
   const overview = group?.id === "overview";
   const groupTitle = group?.id === "rain"
@@ -40,12 +42,12 @@ export async function LetterGroupsPage({
   const story = group && group.id !== "overview" && (
     <>
       <h3 className={styles.storyTitle}>{storyLabel}</h3>
-      <ul className={styles.storyGrid} lang="ar">
+      <ul className={styles.storyGrid}>
         {group.letters.map((letter, index) => (
           <li key={letter}>
             <Image
-              src={`/letter-groups/${group.id}-story-${index + 1}.webp`}
-              alt={`قصة حرف ${letter}`}
+              src={`${media}/${group.id}-story-${index + 1}.webp`}
+              alt={isHe ? `סיפור ${index + 1} בקבוצת ${group.he}` : `قصة حرف ${letter}`}
               width={group.storySize[0]}
               height={group.storySize[1]}
               unoptimized
@@ -53,9 +55,9 @@ export async function LetterGroupsPage({
           </li>
         ))}
       </ul>
-      <a href={`/letter-groups/${group.id}-story.pdf`} className={styles.document}>
+      <DocumentPreviewButton locale={locale} title={storyLabel} url={`${media}/${group.id}-story.pdf`} className={styles.document}>
         {isHe ? "פתיחת הסיפור המלא כ־PDF" : "فتح القصة كاملة بصيغة PDF"}
-      </a>
+      </DocumentPreviewButton>
     </>
   );
 
@@ -84,16 +86,16 @@ export async function LetterGroupsPage({
         <section aria-labelledby="letter-group-title">
           <h2 className={styles.heading} id="letter-group-title">{groupTitle}</h2>
           {overview ? (
-            <a href="/letter-groups/overview.pdf" className={styles.overview}>
+            <DocumentPreviewButton locale={locale} title={group[locale]} url={`${media}/overview.pdf`} className={styles.overview}>
               <Image
-                src="/letter-groups/overview.webp"
+                src={`${media}/overview.webp`}
                 alt={group[locale]}
                 width={923}
                 height={1305}
                 unoptimized
               />
               <span>{isHe ? "פתיחת הסיכום כ־PDF" : "فتح الملخص بصيغة PDF"}</span>
-            </a>
+            </DocumentPreviewButton>
           ) : group.id === "rain" ? <RainMaterials locale={locale} story={story} /> : story}
         </section>
       ) : (
@@ -102,14 +104,10 @@ export async function LetterGroupsPage({
             <Link key={item.id} href={`${root}?group=${item.id}`} className={styles.card}>
               <div className={styles.cover}>
                 <Image
-                  src={item.id === "rain" && isHe
-                    ? "/letter-groups/rain/main.webp"
-                    : item.id === "overview"
-                      ? "/letter-groups/overview.webp"
-                      : `/letter-groups/${item.id}-main.webp`}
+                  src={`${media}/${item.id === "overview" ? "overview" : `${item.id}-main`}.webp`}
                   alt=""
-                  width={item.id === "rain" && isHe ? 1414 : 923}
-                  height={item.id === "rain" && isHe ? 2000 : 1305}
+                  width={923}
+                  height={1305}
                   unoptimized
                 />
               </div>
