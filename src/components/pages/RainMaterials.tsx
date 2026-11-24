@@ -21,14 +21,16 @@ function MaterialCard({ item, locale }: { item: RainMaterial; locale: Locale }) 
   const copy = translations[locale];
   const [preview, setPreview] = useState(false);
   const path = `/letter-groups/rain/${item.id}`;
-  const arabicMain = locale === "ar" && item.id === "main";
-  const hebrewFallback = locale === "ar" && !arabicMain;
-  const url = arabicMain ? "/letter-groups/rain-main.webp" : `${path}.webp`;
+  const main = item.id === "main";
+  const hebrewFallback = locale === "ar" && !main;
+  const url = main
+    ? `/letter-groups/${locale === "he" ? "he/" : ""}rain-main.webp`
+    : `${path}.webp`;
   return (
     <li className={styles.card}>
       <button type="button" className={`nav-action-control ${styles.cardLink}`} onClick={() => setPreview(true)}>
         {!hebrewFallback && <div className={styles.preview}>
-          <Image src={arabicMain ? url : `${path}-preview.webp`} width={400} height={400} alt="" unoptimized />
+          <Image src={main ? url : `${path}-preview.webp`} width={main ? 923 : 400} height={main ? 1305 : 400} alt="" unoptimized />
         </div>}
         <div className={styles.cardCopy}>
           {item.stage && <span className={styles.stage}>{copy.stage} {item.stage}</span>}
