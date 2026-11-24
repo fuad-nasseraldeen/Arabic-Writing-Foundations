@@ -69,12 +69,10 @@ export function Header({
   }, [path]);
   const switchTo = (to: Locale) => {
     closeMobileNav();
-    const parts = path.split("/");
-    parts[1] = to;
-    const destination = parts.join("/") || `/${to}`;
-    const preserveQuery = parts.length === 3 && ["letters", "worksheets", "resources"].includes(parts[2]);
+    const destination = `/${to}`;
+    if (path === destination && !window.location.search && !window.location.hash) return;
     startNavigationProgress();
-    router.push(preserveQuery ? destination + window.location.search : destination);
+    router.push(destination);
   };
   const links = [
       "home",
