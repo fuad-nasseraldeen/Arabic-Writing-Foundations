@@ -5,7 +5,8 @@ import type { Locale } from "@/i18n/config";
 import { t } from "@/i18n/dictionaries";
 import { getPageCms, local } from "@/lib/cms";
 import { LetterReadingPage } from "./LetterReadingPage";
-import { RainReadingSequence } from "./RainReadingSequence";
+import { GroupReadingSequence } from "./GroupReadingSequence";
+import { letterGroups } from "./group-materials";
 import { LetterGroupSearch } from "./LetterGroupSearch";
 import { ArabicLetterSearch } from "./ArabicLetterSearch";
 import { LetterBackToTop } from "./LetterBackToTop";
@@ -13,12 +14,7 @@ import { rainStages } from "./rain-materials";
 import styles from "./LetterGroupsPage.module.css";
 
 const groups = [
-  { id: "rain", he: "קבוצת הגשם", ar: "مجموعة المطر" },
-  { id: "wheel", he: "קבוצת הגלגל", ar: "مجموعة العجلة" },
-  { id: "soup", he: "קבוצת המרקיה", ar: "مجموعة صحن الشوربة" },
-  { id: "slide", he: "קבוצת המגלשה", ar: "مجموعة الزحليقة" },
-  { id: "butterfly", he: "קבוצת הפרפר", ar: "مجموعة الفراشة" },
-  { id: "egg", he: "קבוצת הביצה", ar: "مجموعة البيضة" },
+  ...letterGroups,
   { id: "overview", he: "סיכום כל הקבוצות", ar: "ملخص مجموعات الحروف" },
 ] as const;
 
@@ -76,7 +72,6 @@ export async function LetterGroupsPage({
       {(fullView || byGroup || byStage) && (
         <nav className={styles.readerActions} aria-label={isHe ? "בחירת קבוצה" : "اختيار المجموعة"}>
           {fullView && group && <Link href={root}>{allLabel}</Link>}
-          {fullView && !group && <Link href={`/${locale}/worksheets`}>{isHe ? "דפי עבודה" : "أوراق عمل"}</Link>}
           {groups.filter((item) => !byStage || item.id !== "overview").map((item) => (
             <Link key={item.id} href={`${viewRoot}${fullView ? "?" : "&"}group=${item.id}`}
               aria-current={group?.id === item.id ? "page" : undefined}>
@@ -109,9 +104,9 @@ export async function LetterGroupsPage({
                 {item.id === "overview" ? (
                   <LetterReadingPage locale={locale} title={item[locale]}
                     image={`${media}/overview.webp`} document={`${media}/overview.pdf`} />
-                ) : item.id === "rain" ? (
-                  <RainReadingSequence locale={locale} main={main} story={story} />
-                ) : <>{main}{story}</>}
+                ) : (
+                  <GroupReadingSequence group={item.id} locale={locale} main={main} story={story} />
+                )}
               </section>
             );
           })}
