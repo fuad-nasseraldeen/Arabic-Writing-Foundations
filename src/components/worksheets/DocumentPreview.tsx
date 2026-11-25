@@ -35,7 +35,10 @@ export function DocumentPreview({ locale, title, url, pdf, onClose }: {
   const image = useRef<HTMLImageElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadFailed, setDownloadFailed] = useState(false);
   const he = locale === "he";
+  const downloadLabel = he ? "הורדת PDF" : "تنزيل PDF";
 
   useEffect(() => {
     const element = dialog.current;
@@ -47,6 +50,35 @@ export function DocumentPreview({ locale, title, url, pdf, onClose }: {
       document.body.style.overflow = overflow;
     };
   }, []);
+
+  async function downloadImagePdf() {
+    if (!image.current?.naturalWidth || downloading) return;
+    let source = image.current;
+    setDownloading(true);
+    setDownloadFailed(false);
+    try {
+      const sourceUrl = new URL(source.currentSrc, window.location.href);
+      if (sourceUrl.origin !== window.location.origin) {
+        source = new window.Image();
+        source.crossOrigin = "anonymous";
+        source.src = sourceUrl.href;
+        await source.decode();
+      }
+      const { imageToPdf } = await import("./image-pdf");
+      const objectUrl = URL.createObjectURL(await imageToPdf(source));
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = (sourceUrl.pathname.split("/").pop()?.replace(/\.[^.]+$/, "") || "document") + ".pdf";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch {
+      setDownloadFailed(true);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   function print() {
     if (pdf) {
@@ -95,10 +127,20 @@ export function DocumentPreview({ locale, title, url, pdf, onClose }: {
         <header className={styles.header}>
           <strong>{title}</strong>
           <div className={styles.actions}>
-            <a href={url} download><Download size={17} aria-hidden="true" />{he ? "הורדה" : "تنزيل"}</a>
+            {pdf ? (
+              <a href={url} download><Download size={17} aria-hidden="true" />{downloadLabel}</a>
+            ) : (
+              <button type="button" disabled={!ready || downloading} onClick={downloadImagePdf}>
+                <Download size={17} aria-hidden="true" />
+                {downloading ? (he ? "מכין PDF…" : "جارٍ إعداد PDF…") : downloadLabel}
+              </button>
+            )}
             <button type="button" disabled={!ready} onClick={print}><Printer size={17} aria-hidden="true" />{he ? "הדפסה" : "طباعة"}</button>
             <button type="button" onClick={onClose} aria-label={he ? "סגירה" : "إغلاق"}><X size={21} /></button>
           </div>
+          {downloadFailed && (
+            <span role="alert">{he ? "לא ניתן להוריד כ־PDF. אפשר לשמור כ־PDF דרך כפתור ההדפסה." : "تعذّر تنزيل PDF. يمكن حفظه بصيغة PDF من خلال زر الطباعة."}</span>
+          )}
         </header>
         <div className={styles.document}>
           {pdf
