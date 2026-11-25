@@ -1,49 +1,42 @@
 "use client";
 
-import { Search } from "lucide-react";
-import { useId, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useId, useState } from "react";
 import type { Locale } from "@/i18n/config";
-import { findLetter } from "./letter-group-search";
+import { findLetters } from "./letter-group-search";
 import styles from "./LetterGroupsPage.module.css";
 
 const copy = {
-  he: { label: "הקלידו אות בערבית או את שמה", submit: "חיפוש", empty: "לא נמצאה אות תואמת." },
-  ar: { label: "أدخلوا حرفًا عربيًا أو اسمه", submit: "بحث", empty: "لم نجد حرفًا مطابقًا." },
+  he: { label: "הקלידו אותיות בערבית או שם של אות", empty: "לא נמצאה אות תואמת." },
+  ar: { label: "أدخلوا حروفًا عربية أو اسم حرف", empty: "لم نجد حرفًا مطابقًا." },
 };
 
-export function ArabicLetterSearch({ locale }: { locale: Locale }) {
+export function ArabicLetterSearch({ locale, groups }: {
+  locale: Locale;
+  groups: ReadonlyArray<{ id: string; he: string; ar: string }>;
+}) {
   const id = useId();
   const [input, setInput] = useState("");
-  const [query, setQuery] = useState("");
-  const letter = findLetter(query);
+  const letters = findLetters(input);
   const labels = copy[locale];
 
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setQuery(input.trim());
-  }
-
   return (
-    <form className={styles.letterSearch} role="search" onSubmit={submit}>
+    <div className={styles.letterSearch} role="search">
       <label htmlFor={id}>{labels.label}</label>
       <div className={styles.letterSearchControl}>
-        <input id={id} type="search" value={input} onChange={(event) => {
-          setInput(event.target.value);
-          setQuery("");
-        }} dir="auto" autoComplete="off" maxLength={32} />
-        <button className="nav-action-control" type="submit" disabled={!input.trim()}>
-          <Search size={17} aria-hidden="true" />
-          {labels.submit}
-        </button>
+        <input id={id} type="search" value={input} onChange={(event) => setInput(event.target.value)}
+          dir="auto" autoComplete="off" maxLength={32} />
       </div>
       <div aria-live="polite">
-        {letter ? (
-          <p className={styles.letterResult} lang="ar" dir="rtl">
-            <strong>{letter.letter}</strong>
-            <span>{letter.name}</span>
-          </p>
-        ) : query ? <span>{labels.empty}</span> : null}
+        {letters.map(({ letter, name, group }, index) => (
+          <Link key={`${letter}-${index}`} className={styles.letterResult} href={`/${locale}/letters?view=group&group=${group}`}>
+            <strong lang="ar">{letter}</strong>
+            <span lang="ar" dir="rtl">{name}</span>
+            <span>{groups.find(({ id }) => id === group)?.[locale]}</span>
+          </Link>
+        ))}
+        {input.trim() && letters.length === 0 && <span>{labels.empty}</span>}
       </div>
-    </form>
+    </div>
   );
 }

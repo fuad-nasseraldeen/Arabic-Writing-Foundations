@@ -128,15 +128,15 @@ export async function LocalizedHome({
             style={explore ? gridStyle(explore) : undefined}
           >
             {modes.map(({ view, title, description, Icon }) => (
-              <article key={view} className="cms-card cms-card--interactive">
+              <article key={view} className={`cms-card cms-card--interactive home-explore-card home-explore-card--${view}`}>
                 <Link className="cms-card__surface" href={`/${locale}/letters?view=${view}`}>
                   <div className="cms-card__main">
-                    <Icon size={24} aria-hidden="true" />
+                    <span className="home-explore-card__icon"><Icon size={24} aria-hidden="true" /></span>
                     <h3 className="card-content__title">{title}</h3>
                     <p>{description}</p>
                   </div>
                   <div className="cms-card__footer">
-                    <span className="button">{home.openMode}</span>
+                    <ArrowLeft size={20} aria-hidden="true" />
                   </div>
                 </Link>
               </article>

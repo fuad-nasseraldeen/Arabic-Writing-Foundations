@@ -61,6 +61,8 @@
 }
 
 .letterResult strong { font-size: 2.5rem; }
+.letterSearch a.letterResult { justify-content: flex-start; flex-wrap: wrap; text-decoration: none; }
+.letterResult > :last-child { margin-inline-start: auto; text-decoration: underline; }
 
 .readerActions a,
 .readerShortcut {

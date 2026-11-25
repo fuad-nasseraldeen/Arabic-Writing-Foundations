@@ -9,6 +9,7 @@ import { RainReadingSequence } from "./RainReadingSequence";
 import { LetterGroupSearch } from "./LetterGroupSearch";
 import { ArabicLetterSearch } from "./ArabicLetterSearch";
 import { LetterBackToTop } from "./LetterBackToTop";
+import { rainStages } from "./rain-materials";
 import styles from "./LetterGroupsPage.module.css";
 
 const groups = [
@@ -70,7 +71,7 @@ export async function LetterGroupsPage({
           </>
         ) : <span aria-current="page">{viewTitle}</span>}
       </nav>
-      {byLetter && <ArabicLetterSearch locale={locale} />}
+      {byLetter && <ArabicLetterSearch locale={locale} groups={groups} />}
       {fullView && <LetterGroupSearch locale={locale} groups={groups} />}
       {(fullView || byGroup || byStage) && (
         <nav className={styles.readerActions} aria-label={isHe ? "בחירת קבוצה" : "اختيار المجموعة"}>
@@ -86,9 +87,9 @@ export async function LetterGroupsPage({
       )}
       {byStage && group && group.id !== "overview" && (
         <nav className={styles.readerActions} aria-label={isHe ? "בחירת שלב" : "اختيار المرحلة"}>
-          {[1, 2, 3].map((stage) => (
-            <Link key={stage} href={`/${locale}/worksheets?letter-group=${group.id}&stage=${stage}`}>
-              {isHe ? "שלב" : "المرحلة"} {stage}
+          {rainStages.map((stage, index) => (
+            <Link key={stage.he} href={`/${locale}/worksheets?letter-group=${group.id}&stage=${index + 1}`}>
+              {isHe ? "שלב" : "المرحلة"} {index + 1}
             </Link>
           ))}
         </nav>

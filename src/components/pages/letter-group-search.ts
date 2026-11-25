@@ -31,6 +31,17 @@ export function findLetter(value: string) {
   return letterByAlias.get(normalizeLetter(value));
 }
 
+export function findLetters(value: string) {
+  const query = normalizeLetter(value);
+  const exact = letterByAlias.get(query);
+  if (exact) return [exact];
+
+  return (query.match(/\p{L}׳?/gu) ?? []).flatMap((character) => {
+    const letter = letterByAlias.get(character);
+    return letter ? [letter] : [];
+  });
+}
+
 export function findLetterGroup(value: string) {
   return findLetter(value)?.group;
 }

@@ -1758,4 +1758,28 @@ main {
   .content-page--resources .mobile-last-card { order: 1; }
 }
 
-.home-explore-grid .cms-card__footer { justify-content: center; }
+.home-explore-grid .home-explore-card {
+  --card-tint: #e8efdf;
+  background: color-mix(in srgb, var(--card-tint), var(--color-surface) 52%);
+  padding: clamp(1rem, 2vw, 1.5rem);
+  text-align: center;
+}
+
+.home-explore-grid .home-explore-card--group { --card-tint: #fae9dc; }
+.home-explore-grid .home-explore-card--stage { --card-tint: #ece6f4; }
+
+.home-explore-card .cms-card__main { align-items: center; gap: 0.45rem; }
+.home-explore-card .card-content__title { font-size: 1.3rem; font-weight: 750; }
+.home-explore-card p { margin: 0; max-inline-size: 25ch; text-wrap: pretty; }
+.home-explore-card .cms-card__footer { flex-basis: auto; min-height: 1.5rem; justify-content: center; }
+
+.home-explore-card__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  margin-block-end: 0.35rem;
+  border-radius: 0.9rem;
+  background: var(--card-tint);
+  color: var(--color-accent);
+}
