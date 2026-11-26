@@ -12,6 +12,7 @@ import {
 } from "@/components/cms/InlineItemEditor";
 import { CmsCard } from "@/components/cms/CmsCard";
 import { GridSettings } from "@/components/cms/GridSettings";
+import { ScrollEntrance } from "@/components/navigation/ScrollEntrance";
 
 function gridStyle(section: Section): CSSProperties {
   const columns = Math.min(
@@ -55,6 +56,7 @@ export async function LocalizedHome({
 
   return (
     <>
+      <ScrollEntrance />
       <section className="hero cms-section">
         {hero && <InlineSectionEditor locale={locale} section={hero} />}
         <div className="container hero-grid">
@@ -90,7 +92,7 @@ export async function LocalizedHome({
       </section>
 
       {features && (
-        <section id="guide" className="feature-section container cms-section">
+        <section id="guide" className="feature-section container cms-section" data-scroll-enter>
           <InlineSectionEditor locale={locale} section={features} />
           <GridSettings locale={locale} section={features} />
           <div
@@ -117,7 +119,7 @@ export async function LocalizedHome({
       )}
 
       {(!explore || explore.is_visible || isAdmin) && (
-        <section className="explore container cms-section">
+        <section className="explore container cms-section" data-scroll-enter>
           {explore && <GridSettings locale={locale} section={explore} />}
           <div className="section-intro">
             <span className="eyebrow">{dictionary.home.guide}</span>
@@ -146,7 +148,7 @@ export async function LocalizedHome({
       )}
 
       {(project || author) && (
-        <section className="project-preview container">
+        <section className="project-preview container" data-scroll-enter>
           <div className="project-preview__content">
           {author &&
             itemsFor(author).map((item) => {

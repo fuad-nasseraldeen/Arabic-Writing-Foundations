@@ -12,6 +12,9 @@ async function requestWorksheet(id: string, locale: Locale): Promise<FileResult>
     const access = await fetch(`/api/worksheets/${encodeURIComponent(id)}?locale=${locale}`, { cache: "no-store" });
     if (access.status === 401) return "login_required";
     if (!access.ok) return "unavailable";
+    if (access.headers.get("Content-Type")?.startsWith("image/")) {
+      return { blob: await access.blob(), pdf: false };
+    }
     const { url, pdf } = await access.json() as { url: string; pdf: boolean };
     // Keep the bytes in this viewer so print works after the signed URL expires.
     // The same-origin blob also lets us print through the browser's PDF frame.

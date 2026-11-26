@@ -173,7 +173,7 @@
   position: fixed;
   z-index: 20;
   inset-inline-end: clamp(0.8rem, 3vw, 2rem);
-  inset-block-end: calc(1rem + env(safe-area-inset-bottom, 0px));
+  inset-block-end: calc(1rem + var(--guide-shortcuts-height, env(safe-area-inset-bottom, 0px)));
   display: grid;
   place-items: center;
   width: 2.8rem;

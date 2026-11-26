@@ -1,5 +1,78 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-export const startNavigationProgress=()=>{if(typeof window!=="undefined")window.dispatchEvent(new Event("app:navigation-start"));};
-export function NavigationProgress(){const [state,setState]=useState({active:false,progress:0});const interval=useRef<ReturnType<typeof setInterval>|null>(null),startedAt=useRef("");const pathname=usePathname(),search=useSearchParams(),route=`${pathname}?${search}`;const start=()=>{if(startedAt.current===route&&state.active)return;startedAt.current=route;if(interval.current)clearInterval(interval.current);setState({active:true,progress:22});interval.current=setInterval(()=>setState(old=>old.active?{...old,progress:old.progress<84?Math.min(84,old.progress+(old.progress<48?9:2)):old.progress}:old),160)};useEffect(()=>{const click=(event:MouseEvent)=>{if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;const anchor=(event.target as Element|null)?.closest("a[href]") as HTMLAnchorElement|null;if(!anchor||anchor.target||anchor.hasAttribute("download"))return;const target=new URL(anchor.href,window.location.href);if(target.origin===window.location.origin&&`${target.pathname}${target.search}`!==`${window.location.pathname}${window.location.search}`)start()};document.addEventListener("click",click,true);window.addEventListener("app:navigation-start",start);window.addEventListener("popstate",start);return()=>{document.removeEventListener("click",click,true);window.removeEventListener("app:navigation-start",start);window.removeEventListener("popstate",start);};},[route,state.active]);useEffect(()=>{if(!state.active||startedAt.current===route)return;setState({active:true,progress:100});const done=setTimeout(()=>{if(interval.current)clearInterval(interval.current);setState({active:false,progress:0});startedAt.current=""},220);return()=>clearTimeout(done)},[route,state.active]);return <div className={`navigation-progress ${state.active?"active":""}`} aria-hidden="true"><span style={{transform:`scaleX(${state.progress/100})`}}/></div>}
+
+const navigationStart = "app:navigation-start";
+
+export function startNavigationProgress() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(navigationStart));
+}
+
+export function NavigationProgress() {
+  const [progress, setProgress] = useState(0);
+  const pending = useRef(false);
+  const pathname = usePathname();
+  const query = useSearchParams().toString();
+
+  useEffect(() => {
+    let tick: ReturnType<typeof setInterval> | undefined;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let reset: ReturnType<typeof setTimeout> | undefined;
+    let paint: number | undefined;
+
+    function finish() {
+      clearInterval(tick);
+      clearTimeout(timeout);
+      setProgress(100);
+      reset = setTimeout(() => {
+        pending.current = false;
+        setProgress(0);
+      }, 180);
+    }
+
+    function start() {
+      if (pending.current) return;
+      clearTimeout(reset);
+      pending.current = true;
+      setProgress(22);
+      tick = setInterval(() => setProgress((value) => Math.min(84, value + (value < 48 ? 9 : 2))), 160);
+      timeout = setTimeout(finish, 8000);
+    }
+
+    if (pending.current) paint = requestAnimationFrame(finish);
+
+    function matchesRoute(url: URL) {
+      return url.pathname === pathname && url.searchParams.toString() === query;
+    }
+
+    function onClick(event: MouseEvent) {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = (event.target as Element | null)?.closest<HTMLAnchorElement>("a[href]");
+      if (!anchor || anchor.target || anchor.hasAttribute("download")) return;
+      const target = new URL(anchor.href);
+      if (target.origin === window.location.origin && !matchesRoute(target)) start();
+    }
+
+    function onPopState() {
+      if (!matchesRoute(new URL(window.location.href))) start();
+    }
+
+    document.addEventListener("click", onClick, true);
+    window.addEventListener(navigationStart, start);
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      window.removeEventListener(navigationStart, start);
+      window.removeEventListener("popstate", onPopState);
+      clearInterval(tick);
+      clearTimeout(timeout);
+      clearTimeout(reset);
+      if (paint !== undefined) cancelAnimationFrame(paint);
+    };
+  }, [pathname, query]);
+
+  return <div className={`navigation-progress${progress ? " active" : ""}`} aria-hidden="true">
+    <span style={{ transform: `scaleX(${progress / 100})` }} />
+  </div>;
+}

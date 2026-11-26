@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { createClient as createStorageClient } from "@supabase/supabase-js";
 import { getCurrentUser } from "@/lib/auth";
 import { bundledWorksheetPath } from "@/lib/bundled-worksheets";
@@ -20,6 +22,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   let path = bundledWorksheetPath(id, locale);
   let pdf = false;
+  const storageKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (process.env.NODE_ENV === "development" && !storageKey && path) {
+    try {
+      const original = path.slice("worksheets/bundled/".length);
+      const bytes = await readFile(join(process.cwd(), "worksheet-import", original));
+      const contentType = original.endsWith(".png") ? "image/png" : "image/webp";
+      return new Response(new Uint8Array(bytes), {
+        headers: { ...headers, "Content-Type": contentType, "X-Content-Type-Options": "nosniff" },
+      });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+  }
   if (!path && /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id)) {
     const supabase = await createClient();
     const { data, error } = await supabase.from("worksheets")
@@ -32,7 +47,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
   if (!path) return Response.json({ error: "unavailable" }, { status: 404, headers });
 
-  const storageKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!storageKey) return Response.json({ error: "unavailable" }, { status: 503, headers });
   const storage = createStorageClient(supabaseUrl, storageKey, {
     auth: { persistSession: false, autoRefreshToken: false },

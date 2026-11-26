@@ -13,6 +13,7 @@ import { CmsAdminProvider } from "@/components/cms/CmsAdminProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { NavigationProgress } from "@/components/navigation/NavigationProgress";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
+import { GuideShortcuts } from "@/components/navigation/GuideShortcuts";
 import "@/components/navigation/navigation.css";
 import "../reference-design.css";
 export function generateStaticParams() {
@@ -59,6 +60,9 @@ export default async function LocaleLayout({
         <ScrollToTop />
         <main>{children}</main>
         <Footer locale={locale as Locale} />
+        <Suspense fallback={null}>
+          <GuideShortcuts locale={locale} />
+        </Suspense>
       </div>
     </CmsAdminProvider>
     </AuthProvider>
