@@ -9,6 +9,16 @@ const arabicWorksheets = new Set([
   "stage-1-worksheet-3",
 ]);
 
+export function bundledWorksheetPath(id: string, locale: Locale) {
+  const groupId = letterGroups.find((group) => id.startsWith(`${group.id}-`))?.id;
+  if (!groupId) return null;
+  const materialId = id.slice(groupId.length + 1);
+  if (!groupMaterials[groupId].some((item) => item.kind === "worksheet" && item.id === materialId)) return null;
+  return locale === "ar" && groupId === "rain" && arabicWorksheets.has(materialId)
+    ? `worksheets/bundled/${groupId}/ar/${materialId}.png`
+    : `worksheets/bundled/${groupId}/${materialId}.webp`;
+}
+
 const group: FilterGroup = {
   id: "bundled-letter-group", key: "letter-group", label_he: "קבוצת אותיות", label_ar: "مجموعة الحروف",
   selection_mode: "single", sort_order: 0, is_visible: true,
@@ -52,7 +62,6 @@ export function withBundledWorksheets(data: WorksheetLibraryData, locale: Locale
       if (locale === "ar" && !arabicWorksheets.has(item.id)) continue;
       const id = `${groupId}-${item.id}`;
       const folder = `/letter-groups/${groupId}/${item.id}`;
-      const arabicFile = `/letter-groups/rain/ar/${item.id}.png`;
       const date = groupId === "rain" ? "2026-11-24T00:00:00Z" : "2026-11-25T00:00:00Z";
       worksheetOptionIds[id] = [groupOptionIds.get(groupId)!, stageOptionIds.get(String(item.stage))!];
       sheets.push({
@@ -60,8 +69,8 @@ export function withBundledWorksheets(data: WorksheetLibraryData, locale: Locale
         description_he: null, description_ar: null,
         therapeutic_goal_he: null, therapeutic_goal_ar: null,
         letter_group_id: null,
-        thumbnail_url: locale === "ar" ? arabicFile : `${folder}-preview.webp`,
-        file_url: locale === "ar" ? arabicFile : `${folder}.webp`,
+        thumbnail_url: locale === "ar" ? `/letter-groups/rain/ar/${item.id}-preview.webp` : `${folder}-preview.webp`,
+        file_url: null, has_file: true,
         file_type: "image", original_file_name: null, is_visible: true, sort_order: sheets.length,
         created_at: date, updated_at: date, bundled: true,
       });

@@ -3,6 +3,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { isWorksheetPath, worksheetBucket } from "@/lib/worksheet-storage";
 import { isFontPresetKey } from "@/components/cms/fontPresets";
 import { isAccentPresetKey } from "@/components/cms/themePresets";
 const slugify = (v: string) =>
@@ -883,6 +884,13 @@ export async function saveWorksheet(locale: string, formData: FormData) {
   const { data: before } = id
     ? await supabase.from("worksheets").select("*").eq("id", id).single()
     : { data: null };
+  if (file_url && file_url !== before?.file_url) {
+    if (!isWorksheetPath(file_url) || file_url.startsWith("worksheets/bundled/")) {
+      throw new Error("Invalid private worksheet path.");
+    }
+    const { data: exists, error } = await supabase.storage.from(worksheetBucket).exists(file_url);
+    if (error || !exists) throw new Error("The worksheet upload is missing.");
+  }
   const fileMime = value(formData, "file_url_mime"),
     data = {
       title_he: value(formData, "title_he"),
@@ -896,7 +904,7 @@ export async function saveWorksheet(locale: string, formData: FormData) {
       file_url,
       file_type: file_url
         ? fileMime === "application/pdf" ||
-          file_url.toLowerCase().includes(".pdf")
+          /\.pdf(?:$|[?#])/i.test(file_url)
           ? "pdf"
           : "image"
         : null,
@@ -954,7 +962,20 @@ export async function saveWorksheet(locale: string, formData: FormData) {
   );
   revalidateTag("worksheets", "max");
   revalidatePath(`/${locale}/worksheets`);
+  if (before?.file_url && before.file_url !== file_url) await removeUnusedPrivateWorksheet(supabase, before.file_url);
 }
+
+async function removeUnusedPrivateWorksheet(supabase: Awaited<ReturnType<typeof createClient>>, path: string) {
+  if (!isWorksheetPath(path) || path.startsWith("worksheets/bundled/")) return;
+  const { count, error } = await supabase.from("worksheets")
+    .select("id", { count: "exact", head: true }).eq("file_url", path).is("deleted_at", null);
+  if (error) throw new Error(error.message);
+  if (count === 0) {
+    const { error: storageError } = await supabase.storage.from(worksheetBucket).remove([path]);
+    if (storageError) throw new Error(storageError.message);
+  }
+}
+
 export async function deleteWorksheet(locale: string, formData: FormData) {
   const user = await requireAdmin(locale);
   const supabase = await createClient();
@@ -971,27 +992,10 @@ export async function deleteWorksheet(locale: string, formData: FormData) {
     .update({ deleted_at: new Date().toISOString(), updated_by: user.id })
     .eq("id", id);
   if (error) throw new Error(error.message);
-  if (formData.get("delete_file") === "on" && before.file_url) {
-    const { count } = await supabase
-      .from("worksheets")
-      .select("id", { count: "exact", head: true })
-      .eq("file_url", before.file_url)
-      .is("deleted_at", null);
-    if ((count || 0) === 0) {
-      const marker = "/storage/v1/object/public/site-media/";
-      const index = before.file_url.indexOf(marker);
-      if (index >= 0) {
-        const path = decodeURIComponent(
-          before.file_url.slice(index + marker.length),
-        );
-        await supabase.storage.from("site-media").remove([path]);
-        await supabase.from("media").delete().eq("storage_path", path);
-      }
-    }
-  }
   await audit("worksheet", id, "delete", before, null, user.id);
   revalidateTag("worksheets", "max");
   revalidatePath(`/${locale}/worksheets`);
+  if (formData.get("delete_file") === "on" && before.file_url) await removeUnusedPrivateWorksheet(supabase, before.file_url);
 }
 
 const filterKey = (raw: string) => slugify(raw).replace(/_/g, "-");

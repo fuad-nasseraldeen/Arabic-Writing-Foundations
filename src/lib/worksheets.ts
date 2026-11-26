@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { createClient, createPublicClient } from "@/lib/supabase/server";
 import type { FilterGroup, FilterOption, LetterGroup, Worksheet, WorksheetLibraryData } from "@/lib/worksheet-types";
+import { resolveWorksheetPath } from "./worksheet-storage";
 export type { FilterGroup, FilterOption, LetterGroup, Worksheet, WorksheetLibraryData } from "@/lib/worksheet-types";
 
 async function fetchLibrary(includeHidden: boolean): Promise<WorksheetLibraryData> {
@@ -23,8 +24,20 @@ async function fetchLibrary(includeHidden: boolean): Promise<WorksheetLibraryDat
   const sections = (sectionResult.data || []) as Array<{ id: string; key: string; settings: { columns?: number } | null; site_items?: Array<LetterGroup & { sort_order: number }> }>;
   const worksheetSection = sections.find((section) => section.key === "worksheets.content");
   const letterGroups = sections.filter((section) => section.key !== "worksheets.content").flatMap((section) => section.site_items || []).sort((a, b) => a.sort_order - b.sort_order);
-  return { worksheets: worksheetRows, filterGroups, worksheetOptionIds, letterGroups, columns: Math.min(4, Math.max(1, Number(worksheetSection?.settings?.columns) || 3)) };
+  const cards = worksheetRows.map(({ file_url, thumbnail_url, worksheet_filter_options, ...worksheet }) => {
+    void worksheet_filter_options;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const fullPath = file_url && resolveWorksheetPath(file_url, supabaseUrl);
+    const thumbnailPath = thumbnail_url && resolveWorksheetPath(thumbnail_url, supabaseUrl);
+    return {
+      ...worksheet,
+      has_file: Boolean(file_url),
+      file_url: includeHidden ? file_url : null,
+      thumbnail_url: thumbnail_url === file_url || (fullPath && fullPath === thumbnailPath) ? null : thumbnail_url,
+    };
+  });
+  return { worksheets: cards, filterGroups, worksheetOptionIds, letterGroups, columns: Math.min(4, Math.max(1, Number(worksheetSection?.settings?.columns) || 3)) };
 }
 
-const cachedLibrary = unstable_cache(() => fetchLibrary(false), ["worksheet-library"], { revalidate: 300, tags: ["worksheets"] });
+const cachedLibrary = unstable_cache(() => fetchLibrary(false), ["worksheet-library-protected"], { revalidate: 300, tags: ["worksheets"] });
 export async function getWorksheetLibrary(isAdmin = false) { return isAdmin ? fetchLibrary(true) : cachedLibrary(); }

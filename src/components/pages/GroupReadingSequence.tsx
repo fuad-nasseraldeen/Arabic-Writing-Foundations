@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
+import { ProtectedWorksheetButton } from "@/components/worksheets/ProtectedWorksheet";
 import type { Locale } from "@/i18n/config";
 import { LetterReadingPage } from "./LetterReadingPage";
 import { groupMaterials, type GroupMaterial } from "./group-materials";
@@ -14,6 +16,16 @@ function MaterialPage({ item, group, locale, title = item[locale] }: {
   title?: string;
 }) {
   const document = `/letter-groups/${group}/${item.id}.webp`;
+  if (item.kind === "worksheet") {
+    return <figure className={locale === "he" ? styles.readerPage : styles.readerLinkPage}>
+      <ProtectedWorksheetButton id={`${group}-${item.id}`} locale={locale} title={title}
+        className={`nav-action-control ${styles.readerOpen}`}>
+        {locale === "he" && <Image src={`/letter-groups/${group}/${item.id}-preview.webp`} alt=""
+          width={560} height={790} sizes="(max-width: 700px) 92vw, 560px" unoptimized />}
+        <span>{title}</span>
+      </ProtectedWorksheetButton>
+    </figure>;
+  }
   return (
     <LetterReadingPage locale={locale} document={document}
       title={locale === "he" ? title : `${title} · عرض بالعبرية`}

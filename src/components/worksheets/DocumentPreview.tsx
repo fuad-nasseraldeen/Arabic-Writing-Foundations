@@ -24,19 +24,24 @@ export function DocumentPreviewButton({ children, className, locale, title, url,
   );
 }
 
-export function DocumentPreview({ locale, title, url, pdf, onClose }: {
+export function DocumentPreview({ locale, title, url, pdf, onClose, protectedFile = false, autoPrint = false, status }: {
   locale: Locale;
   title: string;
-  url: string;
+  url?: string;
   pdf?: boolean;
   onClose: () => void;
+  protectedFile?: boolean;
+  autoPrint?: boolean;
+  status?: ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const image = useRef<HTMLImageElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
+  const didAutoPrint = useRef(false);
   const [ready, setReady] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadFailed, setDownloadFailed] = useState(false);
+  const [documentFailed, setDocumentFailed] = useState(false);
   const he = locale === "he";
   const downloadLabel = he ? "הורדת PDF" : "تنزيل PDF";
 
@@ -87,7 +92,8 @@ export function DocumentPreview({ locale, title, url, pdf, onClose }: {
         documentWindow?.focus();
         documentWindow?.print();
       } catch {
-        window.open(url, "_blank", "noopener,noreferrer");
+        if (protectedFile) setDocumentFailed(true);
+        else if (url) window.open(url, "_blank", "noopener,noreferrer");
       }
       return;
     }
@@ -106,7 +112,7 @@ export function DocumentPreview({ locale, title, url, pdf, onClose }: {
     }
     const sheet = printDocument.createElement("img");
     const style = printDocument.createElement("style");
-    style.textContent = "@page{margin:8mm}html,body{margin:0}img{display:block;width:100%;height:calc(100vh - 1px);object-fit:contain;break-inside:avoid}";
+    style.textContent = "@media print{@page{margin:8mm}html,body{margin:0}img{display:block;width:100%;height:calc(100vh - 1px);object-fit:contain;break-inside:avoid}}";
     printDocument.head.append(style);
     printDocument.title = title;
     sheet.onload = () => {
@@ -119,6 +125,14 @@ export function DocumentPreview({ locale, title, url, pdf, onClose }: {
     sheet.src = image.current.currentSrc;
   }
 
+  function documentReady() {
+    setReady(true);
+    if (autoPrint && !didAutoPrint.current) {
+      didAutoPrint.current = true;
+      print();
+    }
+  }
+
   return (
     <dialog ref={dialog} className={styles.dialog} aria-label={title}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
@@ -127,25 +141,27 @@ export function DocumentPreview({ locale, title, url, pdf, onClose }: {
         <header className={styles.header}>
           <strong>{title}</strong>
           <div className={styles.actions}>
-            {pdf ? (
+            {!protectedFile && url && (pdf ? (
               <a href={url} download><Download size={17} aria-hidden="true" />{downloadLabel}</a>
             ) : (
               <button type="button" disabled={!ready || downloading} onClick={downloadImagePdf}>
                 <Download size={17} aria-hidden="true" />
                 {downloading ? (he ? "מכין PDF…" : "جارٍ إعداد PDF…") : downloadLabel}
               </button>
-            )}
+            ))}
             <button type="button" disabled={!ready} onClick={print}><Printer size={17} aria-hidden="true" />{he ? "הדפסה" : "طباعة"}</button>
             <button type="button" onClick={onClose} aria-label={he ? "סגירה" : "إغلاق"}><X size={21} /></button>
           </div>
           {downloadFailed && (
             <span role="alert">{he ? "לא ניתן להוריד כ־PDF. אפשר לשמור כ־PDF דרך כפתור ההדפסה." : "تعذّر تنزيل PDF. يمكن حفظه بصيغة PDF من خلال زر الطباعة."}</span>
           )}
+          {documentFailed && <span role="alert">{he ? "לא ניתן לפתוח את דף העבודה כרגע." : "تعذر فتح ورقة العمل حالياً."}</span>}
         </header>
         <div className={styles.document}>
-          {pdf
-            ? <iframe ref={frame} src={url.includes("#") ? url : `${url}#view=Fit`} title={title} onLoad={() => setReady(true)} />
-            : <img ref={image} src={url} alt={title} onLoad={() => setReady(true)} />}
+          {url ? (pdf
+            ? <iframe ref={frame} src={url.includes("#") ? url : `${url}#view=Fit${protectedFile ? "&toolbar=0" : ""}`} title={title} onLoad={documentReady} />
+            : <img ref={image} src={url} alt={title} onLoad={documentReady} onError={() => setDocumentFailed(true)} />)
+            : status && <div className={styles.status}>{status}</div>}
         </div>
       </div>
     </dialog>

@@ -56,3 +56,4 @@
   .discoveryFilters, .grid { grid-template-columns: 1fr; }
   .mobileFilterGroup { border: 0; border-radius: 14px; }
 }
+.cardActions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
