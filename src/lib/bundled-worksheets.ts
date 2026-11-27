@@ -1,5 +1,6 @@
 import { groupMaterials, letterGroups } from "@/components/pages/group-materials";
 import { rainStages } from "@/components/pages/rain-materials";
+import { dailyWritingActivities } from "@/data/daily-writing";
 import type { FilterGroup, Worksheet, WorksheetLibraryData } from "./worksheet-types";
 import type { Locale } from "@/i18n/config";
 
@@ -10,6 +11,8 @@ const arabicWorksheets = new Set([
 ]);
 
 export function bundledWorksheetPath(id: string, locale: Locale) {
+  const activity = dailyWritingActivities.find((item) => id === `daily-writing-${item.id}`);
+  if (activity) return `worksheets/bundled/daily-writing/${activity.id}.webp`;
   const groupId = letterGroups.find((group) => id.startsWith(`${group.id}-`))?.id;
   if (!groupId) return null;
   const materialId = id.slice(groupId.length + 1);

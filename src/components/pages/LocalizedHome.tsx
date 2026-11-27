@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft, Layers, ListOrdered, Search } from "lucide-react";
+import { ArrowLeft, Layers, ListOrdered, NotebookPen, Search } from "lucide-react";
+import { Fragment } from "react";
 import type { CSSProperties } from "react";
 import { t } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
+import { dailyWritingTitle } from "@/data/daily-writing";
 import { getPageCms, local, type Section } from "@/lib/cms";
 import { resolveInternalHref } from "@/lib/cms-shared";
 import { InlineSectionEditor } from "@/components/cms/InlineSectionEditor";
@@ -49,6 +51,20 @@ export async function LocalizedHome({
   const author = byKey("home.author");
   const itemsFor = (section?: Section) =>
     section ? items.filter((item) => item.section_id === section.id) : [];
+  const featureItems = itemsFor(features);
+  const lettersCardIndex = featureItems.findIndex(
+    (item) => resolveInternalHref(item.cta_href || "", locale).split(/[?#]/, 1)[0] === `/${locale}/letters`,
+  );
+  const dailyWritingCard = (
+    <article className="cms-card cms-card--interactive home-daily-writing">
+      <Link className="cms-card__surface" href={`/${locale}/daily-writing`}>
+        <span className="home-daily-writing__icon"><NotebookPen size={25} aria-hidden="true" /></span>
+        <h3 className="card-content__title">{dailyWritingTitle[locale]}</h3>
+        <p>{locale === "he" ? "מתרגלים כתיבה עם תפריט, רשימת קניות ועוד פעילויות מהיום־יום." : "نتدرّب على الكتابة من خلال قائمة طعام وقائمة مشتريات وأنشطة يومية أخرى."}</p>
+        <div className="cms-card__footer"><ArrowLeft size={20} aria-hidden="true" /></div>
+      </Link>
+    </article>
+  );
   const heroTitle = hero ? local(hero, "title", locale) : dictionary.home.title;
   const heroSubtitle = hero
     ? local(hero, "subtitle", locale)
@@ -99,16 +115,19 @@ export async function LocalizedHome({
             className="feature-grid cms-card-grid"
             style={gridStyle(features)}
           >
-            {itemsFor(features).map((item) => {
+            {featureItems.map((item, index) => {
               return (
-                <CmsCard
-                  key={item.id}
-                  item={item}
-                  locale={locale}
-                  adminControls={<InlineItemEditor locale={locale} item={item} />}
-                />
+                <Fragment key={item.id}>
+                  <CmsCard
+                    item={item}
+                    locale={locale}
+                    adminControls={<InlineItemEditor locale={locale} item={item} />}
+                  />
+                  {index === Math.max(lettersCardIndex, 0) && dailyWritingCard}
+                </Fragment>
               );
             })}
+            {!featureItems.length && dailyWritingCard}
             <AddItemCard
               locale={locale}
               sectionId={features.id}

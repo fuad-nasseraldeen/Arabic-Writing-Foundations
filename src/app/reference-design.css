@@ -58,6 +58,11 @@
 .feature-section .card-content__title { color: #174b3c; font-size: clamp(20px, 1.8vw, 25px); font-weight: 800; }
 .feature-section .card-content__block { margin-inline: auto; }
 .feature-section .card-content__button { border: 0; background: #dee3c7; color: #204e43; border-radius: 24px; }
+.feature-section .cms-card.home-daily-writing { background: #eaf0e3; text-align: center; }
+.home-daily-writing .cms-card__surface { align-items: center; }
+.home-daily-writing__icon { display: grid; place-items: center; width: 3.25rem; aspect-ratio: 1; border-radius: 1rem; background: #dbe7ce; color: #204e43; }
+.home-daily-writing h3 { text-wrap: balance; }
+.home-daily-writing p { margin: 0; flex: 1; text-wrap: pretty; }
 @media (hover: hover) {
   .feature-section .cms-card--interactive:hover { box-shadow: 0 8px 20px #204e4320; }
 }

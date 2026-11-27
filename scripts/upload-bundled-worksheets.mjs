@@ -3,8 +3,17 @@ import { join, relative, resolve, sep } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
 const root = resolve("worksheet-import");
+const dailyWritingOnly = process.argv.includes("--daily-writing");
 const files = (await readdir(root, { recursive: true, withFileTypes: true }))
-  .filter((file) => file.isFile() && /^stage-\d-worksheet-\d+\.(webp|png)$/.test(file.name));
+  .filter((file) => {
+    if (!file.isFile()) return false;
+    if (dailyWritingOnly) {
+      return file.parentPath === join(root, "daily-writing")
+        && /^(restaurant-menu|shopping-list|phone-book|zoo|birthday-invitation)\.webp$/.test(file.name);
+    }
+    return /^stage-\d-worksheet-\d+\.(webp|png)$/.test(file.name);
+  });
+if (dailyWritingOnly && files.length !== 5) throw new Error("Expected all five daily-writing originals.");
 if (!files.length) throw new Error("No worksheet originals found in worksheet-import/.");
 if (!process.argv.includes("--apply")) {
   console.log(`Found ${files.length} worksheet originals in worksheet-import/. Pass --apply to upload.`);
