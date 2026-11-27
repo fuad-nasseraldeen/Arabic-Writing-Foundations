@@ -40,8 +40,9 @@ async function requestWorksheet(id: string, locale: Locale): Promise<FileResult>
   }
 }
 
-function WorksheetViewer({ request, locale, title, autoPrint, close }: {
+function WorksheetViewer({ request, locale, title, autoPrint, groupPrint, close }: {
   request: Promise<FileResult>;
+  groupPrint: boolean;
   locale: Locale;
   title: string;
   autoPrint: boolean;
@@ -77,13 +78,13 @@ function WorksheetViewer({ request, locale, title, autoPrint, close }: {
   ) : <p role="status">{he ? "דף העבודה נטען…" : "جارٍ تحميل ورقة العمل…"}</p>;
 
   return <DocumentPreview autoPrint={autoPrint} locale={locale} title={title}
-    url={file?.url} pdf={file?.pdf} status={status} onClose={close} />;
+    url={file?.url} pdf={file?.pdf} status={status} onClose={close} groupPrint={groupPrint} />;
 }
 
 export function useWorksheetViewer(locale: Locale) {
-  const [selection, setSelection] = useState<{ request: Promise<FileResult>; title: string; autoPrint: boolean }>();
+  const [selection, setSelection] = useState<{ request: Promise<FileResult>; title: string; autoPrint: boolean; groupPrint: boolean }>();
   function open(id: string, title: string, autoPrint = false) {
-    setSelection({ request: requestWorksheet(id, locale), title, autoPrint });
+    setSelection({ request: requestWorksheet(id, locale), title, autoPrint, groupPrint: id.startsWith("print-group-") });
   }
   const viewer = selection && <WorksheetViewer {...selection} locale={locale} close={() => setSelection(undefined)} />;
   return { open, viewer };

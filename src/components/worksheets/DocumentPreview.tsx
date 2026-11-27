@@ -2,10 +2,11 @@
 
 import { Printer, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import type { Locale } from "@/i18n/config";
 import styles from "./DocumentPreview.module.css";
 
-export function DocumentPreview({ locale, title, url, pdf, onClose, autoPrint = false, status }: {
+export function DocumentPreview({ locale, title, url, pdf, onClose, autoPrint = false, status, groupPrint = false }: {
   locale: Locale;
   title: string;
   url?: string;
@@ -13,6 +14,7 @@ export function DocumentPreview({ locale, title, url, pdf, onClose, autoPrint = 
   onClose: () => void;
   autoPrint?: boolean;
   status?: ReactNode;
+  groupPrint?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const image = useRef<HTMLImageElement>(null);
@@ -20,6 +22,10 @@ export function DocumentPreview({ locale, title, url, pdf, onClose, autoPrint = 
   const didAutoPrint = useRef(false);
   const [ready, setReady] = useState(false);
   const [documentFailed, setDocumentFailed] = useState(false);
+  const [printPages, setPrintPages] = useState<string[]>();
+  const [pagesReady, setPagesReady] = useState(false);
+  const usePrintPages = groupPrint && typeof window !== "undefined" &&
+    (window.matchMedia("(pointer: coarse)").matches || navigator.pdfViewerEnabled === false);
   const he = locale === "he";
 
   useEffect(() => {
@@ -33,7 +39,31 @@ export function DocumentPreview({ locale, title, url, pdf, onClose, autoPrint = 
     };
   }, []);
 
+  useEffect(() => {
+    if (!usePrintPages || !url) return;
+    const controller = new AbortController();
+    const pages: string[] = [];
+    void import("./render-print-pages").then(({ renderPrintPages }) =>
+      renderPrintPages(url, controller.signal, (blob) => {
+        pages.push(URL.createObjectURL(blob));
+        setPrintPages([...pages]);
+      }),
+    ).then(() => {
+      if (!controller.signal.aborted) setPagesReady(true);
+    }).catch(() => {
+      if (!controller.signal.aborted) setDocumentFailed(true);
+    });
+    return () => {
+      controller.abort();
+      pages.forEach((page) => URL.revokeObjectURL(page));
+    };
+  }, [url, usePrintPages]);
+
   function print() {
+    if (usePrintPages) {
+      window.print();
+      return;
+    }
     if (pdf) {
       const documentWindow = frame.current?.contentWindow;
       try {
@@ -81,25 +111,39 @@ export function DocumentPreview({ locale, title, url, pdf, onClose, autoPrint = 
   }
 
   return (
-    <dialog ref={dialog} className={styles.dialog} aria-label={title}
+    <><dialog ref={dialog} className={styles.dialog} aria-label={title}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
       onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <div className={styles.card}>
         <header className={styles.header}>
           <strong>{title}</strong>
           <div className={styles.actions}>
-            <button type="button" disabled={!ready} onClick={print}><Printer size={17} aria-hidden="true" />{he ? "הדפסה" : "طباعة"}</button>
+            <button type="button" disabled={usePrintPages ? !pagesReady : !ready} onClick={print}><Printer size={17} aria-hidden="true" />{he ? "הדפסה" : "طباعة"}</button>
             <button type="button" onClick={onClose} aria-label={he ? "סגירה" : "إغلاق"}><X size={21} /></button>
           </div>
+          {usePrintPages && pagesReady && <small className={styles.printHint}>{he
+            ? "אם חלון ההדפסה לא נפתח, בחרו ״הדפסה״ בתפריט הדפדפן."
+            : "إذا لم تفتح نافذة الطباعة، اختاروا «طباعة» من قائمة المتصفح."}</small>}
           {documentFailed && <span role="alert">{he ? "לא ניתן לפתוח את דף העבודה כרגע." : "تعذر فتح ورقة العمل حالياً."}</span>}
         </header>
         <div className={styles.document}>
-          {url ? (pdf
+          {url && usePrintPages ? (
+            <div className={styles.pageList}>
+              {!pagesReady && !documentFailed && <p className={styles.status} role="status">{he ? "מכין את כל דפי הקבוצה להדפסה…" : "جارٍ إعداد جميع صفحات المجموعة للطباعة…"}</p>}
+              {printPages?.map((page, index) => <img key={page} src={page} alt={he ? `עמוד ${index + 1}` : `صفحة ${index + 1}`} />)}
+            </div>
+          ) : url ? (pdf
             ? <iframe ref={frame} src={url.includes("#") ? url : `${url}#view=Fit&toolbar=0`} title={title} onLoad={documentReady} />
             : <img ref={image} src={url} alt={title} onLoad={documentReady} onError={() => setDocumentFailed(true)} />)
             : status && <div className={styles.status}>{status}</div>}
         </div>
       </div>
     </dialog>
+    {usePrintPages && pagesReady && createPortal(
+      <div className={styles.printPages} aria-hidden="true">
+        {printPages?.map((page) => <img key={page} src={page} alt="" />)}
+      </div>,
+      document.body,
+    )}</>
   );
 }

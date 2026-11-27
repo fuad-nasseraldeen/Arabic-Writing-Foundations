@@ -15,6 +15,7 @@
   padding: 0;
   gap: 0;
   overflow: hidden;
+  background: linear-gradient(165deg, var(--activity-color), color-mix(in srgb, var(--activity-color) 38%, var(--color-page)));
 }
 
 .grid .card[data-tone="olive"] { --activity-color: #ecebcf; }
@@ -28,7 +29,7 @@
   width: 100%;
   padding: clamp(1rem, 3vw, 1.6rem);
   border: 0;
-  background: var(--activity-color);
+  background: transparent;
   cursor: pointer;
 }
 
