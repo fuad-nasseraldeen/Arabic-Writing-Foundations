@@ -25,7 +25,7 @@ export function DocumentPreview({ locale, title, url, pdf, onClose, autoPrint = 
   const [printPages, setPrintPages] = useState<string[]>();
   const [pagesReady, setPagesReady] = useState(false);
   const usePrintPages = groupPrint && typeof window !== "undefined" &&
-    (window.matchMedia("(pointer: coarse)").matches || navigator.pdfViewerEnabled === false);
+    (window.matchMedia("(pointer: coarse), (max-width: 48rem)").matches || navigator.pdfViewerEnabled === false);
   const he = locale === "he";
 
   useEffect(() => {
