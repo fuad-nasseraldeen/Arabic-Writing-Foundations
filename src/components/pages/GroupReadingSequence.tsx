@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
+import { Printer } from "lucide-react";
+import { ProtectedWorksheetButton } from "@/components/worksheets/ProtectedWorksheet";
 import type { Locale } from "@/i18n/config";
 import { LetterReadingPage } from "./LetterReadingPage";
-import { groupMaterials, type GroupMaterial } from "./group-materials";
+import { groupMaterials, letterGroups, type GroupMaterial } from "./group-materials";
 import { rainStages } from "./rain-materials";
 import styles from "./LetterGroupsPage.module.css";
 
@@ -31,6 +33,8 @@ export function GroupReadingSequence({ group, locale, main, story }: {
   const he = locale === "he";
   const materials = groupMaterials[group];
   const intro = materials.filter(({ id }) => id.startsWith("introduction-"));
+  const label = he ? "הדפסת כל הקבוצה" : "طباعة المجموعة كاملة";
+  const groupName = letterGroups.find(({ id }) => id === group)?.[locale];
 
   return (
     <>
@@ -42,6 +46,13 @@ export function GroupReadingSequence({ group, locale, main, story }: {
           <a key={index} href={`#${group}-stage-${index + 1}`}>{he ? "שלב" : "المرحلة"} {index + 1}</a>
         ))}
       </nav>
+      <div className={styles.readerActions}>
+        <ProtectedWorksheetButton id={`print-group-${group}`} title={`${label} · ${groupName}`}
+          locale={locale} className="button" autoPrint>
+          <Printer size={18} aria-hidden="true" />
+          {label}
+        </ProtectedWorksheetButton>
+      </div>
       <section id={`${group}-intro`} className={styles.readerSection}>
         <h3>{he ? "דפי היכרות" : "صفحات التعريف"}</h3>
         {intro.map((item) => <MaterialPage key={item.id} item={item} group={group} locale={locale} />)}

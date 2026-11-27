@@ -10,6 +10,23 @@ const arabicWorksheets = new Set([
   "stage-1-worksheet-3",
 ]);
 
+export function groupPrintDocumentIds(groupId: string) {
+  const group = letterGroups.find(({ id }) => id === groupId);
+  if (!group) return null;
+  const materials = groupMaterials[group.id];
+  return [
+    ...materials.filter(({ id }) => id.startsWith("introduction-")).map(({ id }) => `reading-${group.id}-${id}`),
+    `reading-${group.id}-main`,
+    `reading-${group.id}-story`,
+    ...rainStages.flatMap((_, index) => {
+      const stage = materials.filter((item) => item.stage === index + 1);
+      return (["guide", "ideas", "worksheet"] as const).flatMap((kind) =>
+        stage.filter((item) => item.kind === kind)
+          .map(({ id }) => `${kind === "worksheet" ? "" : "reading-"}${group.id}-${id}`));
+    }),
+  ];
+}
+
 export function bundledWorksheetPath(id: string, locale: Locale) {
   if (id === "reading-overview") return `worksheets/bundled/letter-reading/${locale}/overview.pdf`;
   if (id.startsWith("reading-")) {

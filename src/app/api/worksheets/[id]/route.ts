@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createClient as createStorageClient } from "@supabase/supabase-js";
 import { getCurrentUser } from "@/lib/auth";
-import { bundledWorksheetPath } from "@/lib/bundled-worksheets";
+import { bundledWorksheetPath, groupPrintDocumentIds } from "@/lib/bundled-worksheets";
 import { createClient } from "@/lib/supabase/server";
 import { resolveWorksheetPath, worksheetBucket } from "@/lib/worksheet-storage";
 
@@ -13,6 +13,12 @@ function canAccessWorksheet(user: Awaited<ReturnType<typeof getCurrentUser>>) {
   return Boolean(user && !user.is_anonymous);
 }
 
+function worksheetStorage(url: string, key: string) {
+  return createStorageClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  }).storage.from(worksheetBucket);
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!canAccessWorksheet(user)) return Response.json({ error: "login_required" }, { status: 401, headers });
@@ -20,9 +26,32 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const locale = new URL(request.url).searchParams.get("locale") === "ar" ? "ar" : "he";
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const storageKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (id.startsWith("print-group-")) {
+    const ids = groupPrintDocumentIds(id.slice("print-group-".length));
+    if (!ids) return Response.json({ error: "unavailable" }, { status: 404, headers });
+    const paths = ids.map((documentId) => bundledWorksheetPath(documentId, locale));
+    if (!paths.every((path) => path !== null)) {
+      return Response.json({ error: "unavailable" }, { status: 503, headers });
+    }
+    if (process.env.NODE_ENV === "development" && !storageKey) {
+      const documents = ids.map((documentId, index) => ({
+        url: `/api/worksheets/${documentId}?locale=${locale}`,
+        pdf: paths[index].endsWith(".pdf"),
+      }));
+      return Response.json({ documents }, { headers });
+    }
+    if (!storageKey) return Response.json({ error: "unavailable" }, { status: 503, headers });
+    const { data, error } = await worksheetStorage(supabaseUrl, storageKey).createSignedUrls(paths, expiresIn);
+    const urls = new Map(data?.map(({ path, signedUrl }) => [path, signedUrl]));
+    const documents = paths.map((path) => ({ url: urls.get(path), pdf: path.endsWith(".pdf") }));
+    if (error || documents.some(({ url }) => !url)) {
+      return Response.json({ error: "unavailable" }, { status: 503, headers });
+    }
+    return Response.json({ documents }, { headers });
+  }
   let path = bundledWorksheetPath(id, locale);
   let pdf = false;
-  const storageKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (process.env.NODE_ENV === "development" && !storageKey && path) {
     try {
       const original = path.slice("worksheets/bundled/".length);
@@ -49,10 +78,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!path) return Response.json({ error: "unavailable" }, { status: 404, headers });
 
   if (!storageKey) return Response.json({ error: "unavailable" }, { status: 503, headers });
-  const storage = createStorageClient(supabaseUrl, storageKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  }).storage;
-  const { data, error } = await storage.from(worksheetBucket).createSignedUrl(path, expiresIn);
+  const { data, error } = await worksheetStorage(supabaseUrl, storageKey).createSignedUrl(path, expiresIn);
   if (error || !data) return Response.json({ error: "unavailable" }, { status: 503, headers });
   return Response.json({ url: data.signedUrl, pdf: pdf || path.endsWith(".pdf") }, { headers });
 }

@@ -6,6 +6,14 @@ import type { Locale } from "@/i18n/config";
 import { DocumentPreview } from "./DocumentPreview";
 
 type FileResult = { blob: Blob; pdf: boolean } | "login_required" | "unavailable";
+type SignedFile = { url: string; pdf: boolean };
+
+async function loadFile({ url, pdf }: SignedFile) {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Document unavailable");
+  const blob = await response.blob();
+  return { blob: pdf ? new Blob([blob], { type: "application/pdf" }) : blob, pdf };
+}
 
 async function requestWorksheet(id: string, locale: Locale): Promise<FileResult> {
   try {
@@ -16,13 +24,17 @@ async function requestWorksheet(id: string, locale: Locale): Promise<FileResult>
     if (type?.startsWith("image/") || type === "application/pdf") {
       return { blob: await access.blob(), pdf: type === "application/pdf" };
     }
-    const { url, pdf } = await access.json() as { url: string; pdf: boolean };
     // Keep the bytes in this viewer so print works after the signed URL expires.
     // The same-origin blob also lets us print through the browser's PDF frame.
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) return "unavailable";
-    const blob = await response.blob();
-    return { blob: pdf ? new Blob([blob], { type: "application/pdf" }) : blob, pdf };
+    const file = await access.json() as SignedFile | { documents: SignedFile[] };
+    if ("documents" in file) {
+      const [documents, { createGroupPrintPdf }] = await Promise.all([
+        Promise.all(file.documents.map(loadFile)),
+        import("./group-print-pdf"),
+      ]);
+      return { blob: await createGroupPrintPdf(documents), pdf: true };
+    }
+    return await loadFile(file);
   } catch {
     return "unavailable";
   }
@@ -77,16 +89,17 @@ export function useWorksheetViewer(locale: Locale) {
   return { open, viewer };
 }
 
-export function ProtectedWorksheetButton({ id, title, locale, className, children }: {
+export function ProtectedWorksheetButton({ id, title, locale, className, children, autoPrint = false }: {
   id: string;
   title: string;
   locale: Locale;
   className?: string;
   children: ReactNode;
+  autoPrint?: boolean;
 }) {
   const { open, viewer } = useWorksheetViewer(locale);
   return <>
-    <button type="button" className={className} onClick={() => open(id, title)}>{children}</button>
+    <button type="button" className={className} onClick={() => open(id, title, autoPrint)}>{children}</button>
     {viewer}
   </>;
 }
