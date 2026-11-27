@@ -1,31 +1,28 @@
 import Image from "next/image";
 import type { Locale } from "@/i18n/config";
-import { DocumentPreviewButton } from "@/components/worksheets/DocumentPreview";
+import { ProtectedWorksheetButton } from "@/components/worksheets/ProtectedWorksheet";
 import styles from "./LetterGroupsPage.module.css";
 
-export function LetterReadingPage({ locale, title, image, document = image }: {
+export function LetterReadingPage({ locale, title, image, id }: {
   locale: Locale;
   title: string;
   image?: string;
-  document?: string;
+  id: string;
 }) {
-  if (!document) return null;
-
   return (
     <figure className={image ? styles.readerPage : styles.readerLinkPage}>
-      <DocumentPreviewButton
+      <ProtectedWorksheetButton
         locale={locale}
         title={title}
-        url={document}
-        pdf={document.endsWith(".pdf")}
-        className={styles.readerOpen}
+        id={id}
+        className={`nav-action-control ${styles.readerOpen}`}
       >
         {image && (
-          <Image src={image} alt={title} width={923} height={1305}
-            sizes="(max-width: 700px) 92vw, 680px" unoptimized />
+          <Image src={image} alt="" width={560} height={790}
+            sizes="(max-width: 700px) 92vw, 560px" unoptimized />
         )}
         <span>{title}</span>
-      </DocumentPreviewButton>
+      </ProtectedWorksheetButton>
     </figure>
   );
 }

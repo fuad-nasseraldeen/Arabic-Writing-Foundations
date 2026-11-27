@@ -27,7 +27,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     try {
       const original = path.slice("worksheets/bundled/".length);
       const bytes = await readFile(join(process.cwd(), "worksheet-import", original));
-      const contentType = original.endsWith(".png") ? "image/png" : "image/webp";
+      const contentType = original.endsWith(".pdf") ? "application/pdf"
+        : original.endsWith(".png") ? "image/png" : "image/webp";
       return new Response(new Uint8Array(bytes), {
         headers: { ...headers, "Content-Type": contentType, "X-Content-Type-Options": "nosniff" },
       });
@@ -53,5 +54,5 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }).storage;
   const { data, error } = await storage.from(worksheetBucket).createSignedUrl(path, expiresIn);
   if (error || !data) return Response.json({ error: "unavailable" }, { status: 503, headers });
-  return Response.json({ url: data.signedUrl, pdf }, { headers });
+  return Response.json({ url: data.signedUrl, pdf: pdf || path.endsWith(".pdf") }, { headers });
 }

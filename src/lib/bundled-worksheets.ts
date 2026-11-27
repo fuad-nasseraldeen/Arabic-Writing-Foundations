@@ -11,6 +11,21 @@ const arabicWorksheets = new Set([
 ]);
 
 export function bundledWorksheetPath(id: string, locale: Locale) {
+  if (id === "reading-overview") return `worksheets/bundled/letter-reading/${locale}/overview.pdf`;
+  if (id.startsWith("reading-")) {
+    const readingId = id.slice("reading-".length);
+    const group = letterGroups.find(({ id }) => readingId.startsWith(`${id}-`));
+    if (!group) return null;
+    const itemId = readingId.slice(group.id.length + 1);
+    if (itemId === "main" || itemId === "story") {
+      const extension = itemId === "story" ? "pdf" : "webp";
+      return `worksheets/bundled/letter-reading/${locale}/${readingId}.${extension}`;
+    }
+    if (groupMaterials[group.id].some((item) => item.id === itemId && item.kind !== "worksheet")) {
+      return `worksheets/bundled/letter-reading/materials/${group.id}/${itemId}.webp`;
+    }
+    return null;
+  }
   const activity = dailyWritingActivities.find((item) => id === `daily-writing-${item.id}`);
   if (activity) return `worksheets/bundled/daily-writing/${activity.id}.webp`;
   const groupId = letterGroups.find((group) => id.startsWith(`${group.id}-`))?.id;

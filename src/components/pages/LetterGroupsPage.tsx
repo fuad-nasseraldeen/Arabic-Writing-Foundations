@@ -94,16 +94,16 @@ export async function LetterGroupsPage({
         <div className={styles.reader}>
           {readingGroups.map((item) => {
             const headingId = `group-${item.id}`;
-            const main = <LetterReadingPage locale={locale} title={firstPage}
-              image={`${media}/${item.id}-main.webp`} />;
-            const story = <LetterReadingPage locale={locale} title={storyLabel}
-              image={`${media}/${item.id}-story.webp`} document={`${media}/${item.id}-story.pdf`} />;
+            const main = <LetterReadingPage locale={locale} title={firstPage} id={`reading-${item.id}-main`}
+              image={`${media}/${item.id}-main-preview.webp`} />;
+            const story = <LetterReadingPage locale={locale} title={storyLabel} id={`reading-${item.id}-story`}
+              image={`${media}/${item.id}-story-preview.webp`} />;
             return (
               <section key={item.id} className={styles.readerGroup} aria-labelledby={headingId}>
                 <h2 className={styles.heading} id={headingId}>{item[locale]}</h2>
                 {item.id === "overview" ? (
-                  <LetterReadingPage locale={locale} title={item[locale]}
-                    image={`${media}/overview.webp`} document={`${media}/overview.pdf`} />
+                  <LetterReadingPage locale={locale} title={item[locale]} id="reading-overview"
+                    image={`${media}/overview-preview.webp`} />
                 ) : (
                   <GroupReadingSequence group={item.id} locale={locale} main={main} story={story} />
                 )}

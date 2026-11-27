@@ -4,9 +4,15 @@ import { createClient } from "@supabase/supabase-js";
 
 const root = resolve("worksheet-import");
 const dailyWritingOnly = process.argv.includes("--daily-writing");
+const letterReadingOnly = process.argv.includes("--letter-reading");
+if (dailyWritingOnly && letterReadingOnly) throw new Error("Select one worksheet collection.");
 const files = (await readdir(root, { recursive: true, withFileTypes: true }))
   .filter((file) => {
     if (!file.isFile()) return false;
+    if (letterReadingOnly) {
+      const [collection] = relative(root, file.parentPath).split(sep);
+      return collection === "letter-reading" && /\.(webp|pdf)$/.test(file.name);
+    }
     if (dailyWritingOnly) {
       return file.parentPath === join(root, "daily-writing")
         && /^(restaurant-menu|shopping-list|phone-book|zoo|birthday-invitation)\.webp$/.test(file.name);
@@ -14,6 +20,7 @@ const files = (await readdir(root, { recursive: true, withFileTypes: true }))
     return /^stage-\d-worksheet-\d+\.(webp|png)$/.test(file.name);
   });
 if (dailyWritingOnly && files.length !== 5) throw new Error("Expected all five daily-writing originals.");
+if (letterReadingOnly && files.length !== 98) throw new Error("Expected all 98 letter-reading originals.");
 if (!files.length) throw new Error("No worksheet originals found in worksheet-import/.");
 if (!process.argv.includes("--apply")) {
   console.log(`Found ${files.length} worksheet originals in worksheet-import/. Pass --apply to upload.`);
@@ -33,7 +40,8 @@ if (!process.argv.includes("--apply")) {
     const filename = join(file.parentPath, file.name);
     const path = `worksheets/bundled/${relative(root, filename).split(sep).join("/")}`;
     const { error: uploadError } = await storage.from(bucketName).upload(path, await readFile(filename), {
-      contentType: file.name.endsWith(".png") ? "image/png" : "image/webp",
+      contentType: file.name.endsWith(".pdf") ? "application/pdf"
+        : file.name.endsWith(".png") ? "image/png" : "image/webp",
       cacheControl: "0",
       upsert: false,
     });

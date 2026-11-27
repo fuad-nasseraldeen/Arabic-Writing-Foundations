@@ -12,8 +12,9 @@ async function requestWorksheet(id: string, locale: Locale): Promise<FileResult>
     const access = await fetch(`/api/worksheets/${encodeURIComponent(id)}?locale=${locale}`, { cache: "no-store" });
     if (access.status === 401) return "login_required";
     if (!access.ok) return "unavailable";
-    if (access.headers.get("Content-Type")?.startsWith("image/")) {
-      return { blob: await access.blob(), pdf: false };
+    const type = access.headers.get("Content-Type");
+    if (type?.startsWith("image/") || type === "application/pdf") {
+      return { blob: await access.blob(), pdf: type === "application/pdf" };
     }
     const { url, pdf } = await access.json() as { url: string; pdf: boolean };
     // Keep the bytes in this viewer so print works after the signed URL expires.
@@ -63,7 +64,7 @@ function WorksheetViewer({ request, locale, title, autoPrint, close }: {
     <p role="alert">{he ? "לא ניתן לפתוח את דף העבודה כרגע." : "تعذر فتح ورقة العمل حالياً."}</p>
   ) : <p role="status">{he ? "דף העבודה נטען…" : "جارٍ تحميل ورقة العمل…"}</p>;
 
-  return <DocumentPreview protectedFile autoPrint={autoPrint} locale={locale} title={title}
+  return <DocumentPreview autoPrint={autoPrint} locale={locale} title={title}
     url={file?.url} pdf={file?.pdf} status={status} onClose={close} />;
 }
 
